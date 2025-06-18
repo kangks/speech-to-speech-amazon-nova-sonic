@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import requests
 import sys
+import time
+from pathlib import Path
 from loguru import logger
 from pipecat.adapters.schemas.function_schema import FunctionSchema
 from pipecat.adapters.schemas.tools_schema import ToolsSchema
@@ -12,22 +14,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv(override=True)
 
-# Get the restaurant booking API URL from environment variables
-RESTAURANT_BOOKING_API_URL = os.getenv("RESTAURANT_BOOKING_API_URL", "https://api.example.com/demo")
+# Job board API URL
+JOB_BOARD_API_URL = "https://www.arbeitnow.com/api/job-board-api"
 
+# Cache settings
+CACHE_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "cache"
+CACHE_FILE = CACHE_DIR / "job_data.json"
+CACHE_EXPIRY_SECONDS = 3600  # 1 hour
 
-# Example function for weather API integration
-async def fetch_weather_from_api(params: FunctionCallParams):
-    """Example function to fetch weather data."""
-    temperature = 75 if params.arguments["format"] == "fahrenheit" else 24
-    await params.result_callback(
-        {
-            "conditions": "nice",
-            "temperature": temperature,
-            "format": params.arguments["format"],
-            "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
-        }
-    )    
+# Create cache directory if it doesn't exist
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# State for job questions
+CURRENT_QUESTION_INDEX = 0
+
 
 # Get current date and time
 async def get_current_date_time(params: FunctionCallParams):
@@ -37,140 +37,331 @@ async def get_current_date_time(params: FunctionCallParams):
         }
     )    
 
-# restaurant booking API functions
-async def create_restaurant_booking(params: FunctionCallParams):
-    """Function to create a new restaurant booking."""
+# Cache utility functions
+def read_cache():
+    """Read job data from cache file if it exists and is valid."""
     try:
-        # Extract booking details from params
-        name = params.arguments["name"]
-        date = params.arguments["date"]
-        hour = params.arguments["hour"]
-        num_guests = params.arguments["num_guests"]
+        if not CACHE_FILE.exists():
+            logger.debug(f"Cache file {CACHE_FILE} does not exist")
+            return None
         
-        # Prepare request payload
-        payload = {
-            "name": name,
-            "date": date,
-            "hour": hour,
-            "num_guests": num_guests
-        }
+        # Check if cache is expired
+        cache_mtime = CACHE_FILE.stat().st_mtime
+        cache_age = time.time() - cache_mtime
         
-        # Log request details
-        request_url = f"{RESTAURANT_BOOKING_API_URL}/booking"
-        logger.info(f"Creating restaurant booking for {name} - Request URL: {request_url}")
-        logger.debug(f"Booking payload: {json.dumps(payload)}")
+        # if cache_age > CACHE_EXPIRY_SECONDS:
+        #     logger.debug(f"Cache is expired (age: {cache_age:.2f}s, max: {CACHE_EXPIRY_SECONDS}s)")
+        #     return None
         
-        try:
-            # Make API request
-            response = requests.post(
-                request_url,
-                json=payload,
-                timeout=10  # Set a reasonable timeout
-            )
+        # Read and parse cache file
+        with open(CACHE_FILE, 'r') as f:
+            cache_data = json.load(f)
+            logger.info(f"Successfully loaded job data from cache (age: {cache_age:.2f}s)")
+            return cache_data
             
-            # Check if request was successful
-            response.raise_for_status()
+    except json.JSONDecodeError as e:
+        logger.error(f"Error parsing cache file: {str(e)}")
+        return None
+    except Exception as e:
+        logger.error(f"Error reading cache: {str(e)}")
+        return None
+
+def write_cache(data):
+    """Write job data to cache file."""
+    try:
+        with open(CACHE_FILE, 'w') as f:
+            json.dump(data, f)
+        logger.info(f"Successfully wrote job data to cache: {CACHE_FILE}")
+        return True
+    except Exception as e:
+        logger.error(f"Error writing to cache: {str(e)}")
+        return False
+
+# Function to fetch Data Science jobs from the job board API
+async def fetch_data_science_jobs(params: FunctionCallParams):
+    """Function to fetch Data Science jobs from the job board API."""
+    try:
+        # Extract search parameters if provided (for return format consistency)
+        search_term = params.arguments.get("search_term", "Data Science")
+        page = params.arguments.get("page", 1)
+        
+        # Try to get data from cache first
+        job_data = None
+        cached_data = read_cache()
+        job_data = cached_data
+
+        # If job_data is None, initialize it with an empty structure
+        if job_data is None:
+            job_data = {"data": []}
+            logger.info("No cached data available, using empty job data structure")
+
+        if cached_data:
+            logger.info("Using cached job data")
+            job_data = cached_data
+        else:
+            # Cache miss or expired, fetch from API
+            # Prepare request URL without search parameters (API doesn't support server-side search)
+            request_url = f"{JOB_BOARD_API_URL}"
+            logger.info(f"Cache miss or expired. Fetching all jobs from API - Request URL: {request_url}")
             
             try:
-                # Parse response data
-                booking_data = response.json()
+                # Make API request to get all jobs
+                response = requests.get(
+                    request_url,
+                    timeout=10  # Set a reasonable timeout
+                )
                 
-                # Prepare response in the expected format
-                result = {
-                    "message": booking_data.get("message", f"Success! Your booking on {date} at {hour} by {name} for {num_guests} guests is confirmed. Your booking ID is {booking_data['booking_id']}."),
-                    "booking_id": booking_data["booking_id"]
-                }
+                # Check if request was successful
+                response.raise_for_status()
                 
-                # Include any additional fields from the API response
-                for key, value in booking_data.items():
-                    if key not in result:
-                        result[key] = value
-                
-                logger.info(f"Successfully created booking with ID: {booking_data['booking_id']}")
-                await params.result_callback(result)
-                
-            except json.JSONDecodeError as e:
-                # Handle JSON parsing errors
-                error_message = f"Error parsing booking response: {str(e)}"
-                logger.error(f"{error_message} - Response content: {response.text[:200]}")
+                try:
+                    # Parse response data
+                    job_data = response.json()
+                    
+                    # Write to cache for future use
+                    write_cache(job_data)
+                    
+                except json.JSONDecodeError as e:
+                    # Handle JSON parsing errors
+                    error_message = f"Error parsing job board API response: {str(e)}"
+                    logger.error(f"{error_message} - Response content: {response.text[:200]}")
+                    await params.result_callback({
+                        "error": True,
+                        "message": error_message,
+                        "status": "failed",
+                        "response_code": response.status_code
+                    })
+                    return
+                    
+            except requests.exceptions.ConnectionError as e:
+                # Handle connection errors
+                error_message = f"Connection error while fetching jobs: {str(e)}"
+                logger.error(f"{error_message} - URL: {request_url}")
                 await params.result_callback({
                     "error": True,
                     "message": error_message,
                     "status": "failed",
-                    "response_code": response.status_code
+                    "error_type": "connection_error"
                 })
+                return
                 
-        except requests.exceptions.ConnectionError as e:
-            # Handle connection errors
-            error_message = f"Connection error while creating restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "error_type": "connection_error"
-            })
-            
-        except requests.exceptions.Timeout as e:
-            # Handle timeout errors
-            error_message = f"Timeout error while creating restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}, Timeout: 10s")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "error_type": "timeout"
-            })
-            
-        except requests.exceptions.HTTPError as e:
-            # Handle HTTP errors with response details
-            status_code = e.response.status_code if hasattr(e, 'response') else "unknown"
-            error_message = f"HTTP error while creating restaurant booking: {str(e)}"
-            
-            # Try to get error details from response
-            error_details = {}
-            try:
-                if hasattr(e, 'response') and e.response.text:
-                    error_details = e.response.json()
-            except json.JSONDecodeError:
-                error_details = {"raw_response": e.response.text[:200]} if hasattr(e, 'response') else {}
+            except requests.exceptions.Timeout as e:
+                # Handle timeout errors
+                error_message = f"Timeout error while fetching jobs: {str(e)}"
+                logger.error(f"{error_message} - URL: {request_url}, Timeout: 10s")
+                await params.result_callback({
+                    "error": True,
+                    "message": error_message,
+                    "status": "failed",
+                    "error_type": "timeout"
+                })
+                return
+                f
+            except requests.exceptions.HTTPError as e:
+                # Handle HTTP errors with response details
+                status_code = e.response.status_code if hasattr(e, 'response') else "unknown"
+                error_message = f"HTTP error while fetching jobs: {str(e)}"
                 
-            logger.error(f"{error_message} - Status code: {status_code}, URL: {request_url}")
-            logger.error(f"Error details: {json.dumps(error_details)}")
-            
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "status_code": status_code,
-                "error_details": error_details
-            })
-            
-        except requests.exceptions.RequestException as e:
-            # Handle other request errors
-            error_message = f"Request error while creating restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "error_type": "request_error"
-            })
-            
-    except KeyError as e:
-        # Handle missing required arguments
-        error_message = f"Missing required argument in create_restaurant_booking: {str(e)}"
-        logger.error(error_message)
+                # Try to get error details from response
+                error_details = {}
+                try:
+                    if hasattr(e, 'response') and e.response.text:
+                        error_details = e.response.json()
+                except json.JSONDecodeError:
+                    error_details = {"raw_response": e.response.text[:200]} if hasattr(e, 'response') else {}
+                    
+                logger.error(f"{error_message} - Status code: {status_code}, URL: {request_url}")
+                logger.error(f"Error details: {json.dumps(error_details)}")
+                
+                await params.result_callback({
+                    "error": True,
+                    "message": error_message,
+                    "status": "failed",
+                    "status_code": status_code,
+                    "error_details": error_details
+                })
+                return
+                
+            except requests.exceptions.RequestException as e:
+                # Handle other request errors
+                error_message = f"Request error while fetching jobs: {str(e)}"
+                logger.error(f"{error_message} - URL: {request_url}")
+                await params.result_callback({
+                    "error": True,
+                    "message": error_message,
+                    "status": "failed",
+                    "error_type": "request_error"
+                })
+                return
+        
+        # Process the job data (either from cache or fresh API response)
+        # Client-side filtering for jobs with "Data Science" in the title
+        data_science_jobs = []
+        # Ensure job_data is not None before accessing it
+        all_jobs = [] if job_data is None else job_data.get("data", [])
+        
+        # Apply pagination after filtering
+        start_index = (page - 1) * 10  # Assuming 10 jobs per page
+        
+        # Filter all jobs first
+        filtered_jobs = []
+        for job in all_jobs:
+            if "Data Science" in job.get("title", ""):
+                # Include only relevant job information
+                filtered_job = {
+                    "title": job.get("title", ""),
+                    "company_name": job.get("company_name", ""),
+                    "location": job.get("location", ""),
+                    "remote": job.get("remote", False),
+                    "url": job.get("url", ""),
+                    "created_at": job.get("created_at", "")
+                }
+                filtered_jobs.append(filtered_job)
+        
+        # Apply pagination to filtered results
+        total_filtered = len(filtered_jobs)
+        data_science_jobs = filtered_jobs[start_index:start_index + 10] if start_index < total_filtered else []
+        
+        # Prepare response (maintaining the same format as before)
+        result = {
+            "jobs": data_science_jobs,
+            "count": len(data_science_jobs),
+            "total_count": total_filtered,
+            "search_term": search_term,
+            "page": page,
+            "from_cache": cached_data is not None
+        }
+        
+        source = "cache" if cached_data else "API"
+        logger.info(f"Found {total_filtered} Data Science jobs from {source} (showing {len(data_science_jobs)} for page {page})")
+        await params.result_callback(result)
+                
+    except Exception as e:
+        # Handle any other unexpected errors
+        error_message = f"Unexpected error fetching jobs: {str(e)}"
+        logger.error(f"{error_message} - Exception type: {type(e).__name__}")
+        
+        # Return error response
         await params.result_callback({
             "error": True,
             "message": error_message,
             "status": "failed",
-            "error_type": "invalid_arguments"
+            "error_type": "unexpected_error"
         })
+            
+
+# Function to get job questions based on position
+async def get_job_questions(params: FunctionCallParams):
+    """Function to get a specific interview question for a job position."""
+    global CURRENT_QUESTION_INDEX
+    
+    try:
+        # Extract parameters
+        position = params.arguments.get("position", "").strip().lower()
+        
+        if not position:
+            await params.result_callback({
+                "error": True,
+                "message": "Position parameter is required",
+                "status": "failed"
+            })
+            return
+            
+        # Path to job questions JSON file
+        job_questions_file = CACHE_DIR / "job_questions.json"
+        
+        # Check if file exists
+        if not job_questions_file.exists():
+            await params.result_callback({
+                "error": True,
+                "message": f"Job questions file not found: {job_questions_file}",
+                "status": "failed"
+            })
+            return
+            
+        # Read and parse job questions file
+        try:
+            with open(job_questions_file, 'r') as f:
+                job_data = json.load(f)
+        except json.JSONDecodeError as e:
+            await params.result_callback({
+                "error": True,
+                "message": f"Error parsing job questions file: {str(e)}",
+                "status": "failed"
+            })
+            return
+            
+        # Find matching position
+        positions = job_data.get("positions", [])
+        matched_position = None
+        
+        for pos in positions:
+            if position in pos.get("title", "").lower():
+                matched_position = pos
+                break
+                
+        # If no exact match, try partial match
+        if not matched_position:
+            for pos in positions:
+                if any(word in pos.get("title", "").lower() for word in position.split()):
+                    matched_position = pos
+                    break
+        
+        # If still no match, return the first position as default
+        if not matched_position and positions:
+            matched_position = positions[0]
+            logger.warning(f"No matching position found for '{position}', using default: {matched_position.get('title')}")
+        
+        # Return result
+        if matched_position:
+            questions = matched_position.get("questions", [])
+            
+            # Check if question_index is valid
+            if not questions:
+                await params.result_callback({
+                    "error": True,
+                    "message": f"No questions found for position: {matched_position.get('title')}",
+                    "status": "failed"
+                })
+                return
+                
+            # Check if current question index is valid
+            if not questions:
+                await params.result_callback({
+                    "error": True,
+                    "message": f"No questions found for position: {matched_position.get('title')}",
+                    "status": "failed"
+                })
+                return
+                
+            # Reset index if it's out of range
+            if CURRENT_QUESTION_INDEX < 0 or CURRENT_QUESTION_INDEX >= len(questions):
+                CURRENT_QUESTION_INDEX = 0
+                
+            # Return only the specific question
+            specific_question = questions[CURRENT_QUESTION_INDEX]
+            
+            # Increment the question index for next call
+            CURRENT_QUESTION_INDEX = (CURRENT_QUESTION_INDEX + 1) % len(questions)
+            result = {
+                "question": specific_question.get("question", ""),
+                "expectation": specific_question.get("expectation", ""),
+                "status": "success"
+            }
+        else:
+            result = {
+                "error": True,
+                "message": "No job positions found in the data",
+                "status": "failed"
+            }
+
+        logger.info(f"result: {result}")
+            
+        await params.result_callback(result)
         
     except Exception as e:
-        # Handle any other unexpected errors
-        error_message = f"Unexpected error creating restaurant booking: {str(e)}"
+        # Handle any unexpected errors
+        error_message = f"Unexpected error getting job questions: {str(e)}"
         logger.error(f"{error_message} - Exception type: {type(e).__name__}")
         
         # Return error response
@@ -181,306 +372,6 @@ async def create_restaurant_booking(params: FunctionCallParams):
             "error_type": "unexpected_error"
         })
 
-async def get_restaurant_booking(params: FunctionCallParams):
-    """Function to retrieve restaurant booking details."""
-    try:
-        # Get booking ID from params
-        booking_id = params.arguments["booking_id"]
-        
-        # Log request details
-        request_url = f"{RESTAURANT_BOOKING_API_URL}/booking/{booking_id}"
-        logger.info(f"Retrieving restaurant booking with ID: {booking_id} - Request URL: {request_url}")
-        
-        try:
-            # Make API request to get booking details
-            response = requests.get(
-                request_url,
-                timeout=10  # Set a reasonable timeout
-            )
-            
-            # Check if request was successful
-            response.raise_for_status()
-            
-            try:
-                # Parse response data
-                booking_data = response.json()
-                logger.info(f"Successfully retrieved booking data for ID: {booking_id}")
-                
-                # Return the booking data
-                await params.result_callback(booking_data)
-                
-            except json.JSONDecodeError as e:
-                # Handle JSON parsing errors
-                error_message = f"Error parsing booking response: {str(e)}"
-                logger.error(f"{error_message} - Response content: {response.text[:200]}")
-                await params.result_callback({
-                    "error": True,
-                    "message": error_message,
-                    "status": "failed",
-                    "booking_id": booking_id,
-                    "response_code": response.status_code
-                })
-                
-        except requests.exceptions.ConnectionError as e:
-            # Handle connection errors
-            error_message = f"Connection error while retrieving restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "error_type": "connection_error"
-            })
-            
-        except requests.exceptions.Timeout as e:
-            # Handle timeout errors
-            error_message = f"Timeout error while retrieving restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}, Timeout: 10s")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "error_type": "timeout"
-            })
-            
-        except requests.exceptions.HTTPError as e:
-            # Handle HTTP errors with response details
-            status_code = e.response.status_code if hasattr(e, 'response') else "unknown"
-            error_message = f"HTTP error while retrieving restaurant booking: {str(e)}"
-            
-            # Try to get error details from response
-            error_details = {}
-            try:
-                if hasattr(e, 'response') and e.response.text:
-                    error_details = e.response.json()
-            except json.JSONDecodeError:
-                error_details = {"raw_response": e.response.text[:200]} if hasattr(e, 'response') else {}
-                
-            logger.error(f"{error_message} - Status code: {status_code}, URL: {request_url}")
-            logger.error(f"Error details: {json.dumps(error_details)}")
-            
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "status_code": status_code,
-                "error_details": error_details
-            })
-            
-        except requests.exceptions.RequestException as e:
-            # Handle other request errors
-            error_message = f"Request error while retrieving restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "error_type": "request_error"
-            })
-            
-    except KeyError as e:
-        # Handle missing required arguments
-        error_message = f"Missing required argument in get_restaurant_booking: {str(e)}"
-        logger.error(error_message)
-        await params.result_callback({
-            "error": True,
-            "message": error_message,
-            "status": "failed",
-            "error_type": "invalid_arguments"
-        })
-        
-    except Exception as e:
-        # Handle any other unexpected errors
-        error_message = f"Unexpected error retrieving restaurant booking: {str(e)}"
-        logger.error(f"{error_message} - Exception type: {type(e).__name__}")
-        
-        # Return error response with booking ID if available
-        booking_id = params.arguments.get("booking_id", "unknown")
-        await params.result_callback({
-            "error": True,
-            "message": error_message,
-            "status": "failed",
-            "booking_id": booking_id,
-            "error_type": "unexpected_error"
-        })
-
-async def delete_restaurant_booking(params: FunctionCallParams):
-    """Function to delete (cancel) a restaurant booking."""
-    try:
-        # Get booking ID from params
-        booking_id = params.arguments["booking_id"]
-        
-        # Get optional cancellation reason if provided
-        cancellation_reason = params.arguments.get("cancellation_reason", "")
-        
-        # Prepare request payload
-        payload = {
-            "booking_id": booking_id
-        }
-        
-        # Add cancellation reason if provided
-        if cancellation_reason:
-            payload["cancellation_reason"] = cancellation_reason
-        
-        # Log request details
-        request_url = f"{RESTAURANT_BOOKING_API_URL}/booking/{booking_id}"
-        logger.info(f"Canceling restaurant booking with ID: {booking_id} - Request URL: {request_url}")
-        logger.debug(f"Cancellation payload: {json.dumps(payload)}")
-        
-        try:
-            # Make API request to cancel the booking
-            response = requests.delete(
-                request_url,
-                json=payload,
-                timeout=10  # Set a reasonable timeout
-            )
-            
-            # Check if request was successful
-            response.raise_for_status()
-            
-            try:
-                # Parse response data
-                cancellation_data = response.json()
-                
-                # Prepare response in the expected format
-                result = {
-                    "message": cancellation_data.get("message", f"Booking with ID {booking_id} deleted successfully"),
-                    "booking_id": booking_id
-                }
-                
-                # Include cancellation details from the API response
-                if "cancellation_details" in cancellation_data:
-                    result["cancellation_details"] = cancellation_data["cancellation_details"]
-                
-                # Include any additional fields from the API response
-                for key, value in cancellation_data.items():
-                    if key not in result and key != "cancellation_details":
-                        result[key] = value
-                
-                logger.info(f"Successfully canceled booking with ID: {booking_id}")
-                await params.result_callback(result)
-                
-            except json.JSONDecodeError as e:
-                # Handle JSON parsing errors
-                error_message = f"Error parsing cancellation response: {str(e)}"
-                logger.error(f"{error_message} - Response content: {response.text[:200]}")
-                await params.result_callback({
-                    "error": True,
-                    "message": error_message,
-                    "status": "failed",
-                    "booking_id": booking_id,
-                    "response_code": response.status_code
-                })
-                
-        except requests.exceptions.ConnectionError as e:
-            # Handle connection errors
-            error_message = f"Connection error while canceling restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "error_type": "connection_error"
-            })
-            
-        except requests.exceptions.Timeout as e:
-            # Handle timeout errors
-            error_message = f"Timeout error while canceling restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}, Timeout: 10s")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "error_type": "timeout"
-            })
-            
-        except requests.exceptions.HTTPError as e:
-            # Handle HTTP errors with response details
-            status_code = e.response.status_code if hasattr(e, 'response') else "unknown"
-            error_message = f"HTTP error while canceling restaurant booking: {str(e)}"
-            
-            # Try to get error details from response
-            error_details = {}
-            try:
-                if hasattr(e, 'response') and e.response.text:
-                    error_details = e.response.json()
-            except json.JSONDecodeError:
-                error_details = {"raw_response": e.response.text[:200]} if hasattr(e, 'response') else {}
-                
-            logger.error(f"{error_message} - Status code: {status_code}, URL: {request_url}")
-            logger.error(f"Error details: {json.dumps(error_details)}")
-            
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "status_code": status_code,
-                "error_details": error_details
-            })
-            
-        except requests.exceptions.RequestException as e:
-            # Handle other request errors
-            error_message = f"Request error while canceling restaurant booking: {str(e)}"
-            logger.error(f"{error_message} - URL: {request_url}")
-            await params.result_callback({
-                "error": True,
-                "message": error_message,
-                "status": "failed",
-                "booking_id": booking_id,
-                "error_type": "request_error"
-            })
-            
-    except KeyError as e:
-        # Handle missing required arguments
-        error_message = f"Missing required argument in delete_restaurant_booking: {str(e)}"
-        logger.error(error_message)
-        await params.result_callback({
-            "error": True,
-            "message": error_message,
-            "status": "failed",
-            "error_type": "invalid_arguments"
-        })
-        
-    except Exception as e:
-        # Handle any other unexpected errors
-        error_message = f"Unexpected error canceling restaurant booking: {str(e)}"
-        logger.error(f"{error_message} - Exception type: {type(e).__name__}")
-        
-        # Return error response with booking ID if available
-        booking_id = params.arguments.get("booking_id", "unknown")
-        await params.result_callback({
-            "error": True,
-            "message": error_message,
-            "status": "failed",
-            "booking_id": booking_id,
-            "error_type": "unexpected_error"
-        })
-
-# Define weather function schema
-weather_function = FunctionSchema(
-    name="get_current_weather",
-    description="Get the current weather",
-    properties={
-        "location": {
-            "type": "string",
-            "description": "The city and state, e.g. San Francisco, CA",
-        },
-        "format": {
-            "type": "string",
-            "enum": ["celsius", "fahrenheit"],
-            "description": "The temperature unit to use. Infer this from the users location.",
-        },
-    },
-    required=["location", "format"],
-)
-
 # now
 get_current_date_time_function = FunctionSchema(
     name="get_current_date_time",
@@ -488,78 +379,49 @@ get_current_date_time_function = FunctionSchema(
     properties={},
     required=[],
 )
-# Define restaurant booking function schemas
-create_booking_function = FunctionSchema(
-    name="create_restaurant_booking",
-    description="Create a new restaurant table reservation with guest details. Always convert the date of booking given by the user, to the format of Year-month-day.",
+
+# Define job board function schema
+job_board_function = FunctionSchema(
+    name="fetch_data_science_jobs",
+    description="Fetch Data Science job listings from the job board API",
     properties={
-        "name": {
+        "search_term": {
             "type": "string",
-            "description": "Name to identify your reservation",
+            "description": "Search term to filter jobs (defaults to 'Data Science')",
+            "optional": True,
         },
-        "date": {
-            "type": "string",
-            "format": "date",
-            "description": "The date of the booking. If the format is not in the Year-month-day, convert to the format of Year-month-day required by the API, which is the Year-month-day seperated by the dash."
-        },
-        "hour": {
-            "type": "string",
-            "description": "The hour of the booking (HH:MM)",
-            "pattern": "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$",
-        },
-        "num_guests": {
+        "page": {
             "type": "integer",
-            "description": "The number of guests for the booking. Must be between 1 and 20. If the guest is more than the maximum, response politely that the maximum number of guests is the maximum number.",
-            "minimum": 1,
-            "maximum": 20,
-        },
-    },
-    required=["name", "date", "hour", "num_guests"],
-)
-
-get_booking_function = FunctionSchema(
-    name="get_restaurant_booking",
-    description="Retrieve details of a specific restaurant booking",
-    properties={
-        "booking_id": {
-            "type": "string",
-            "description": "The ID of the booking to retrieve",
-        },
-    },
-    required=["booking_id"],
-)
-
-delete_booking_function = FunctionSchema(
-    name="delete_restaurant_booking",
-    description="Cancel an existing restaurant booking",
-    properties={
-        "booking_id": {
-            "type": "string",
-            "description": "The ID of the booking to cancel",
-        },
-        "cancellation_reason": {
-            "type": "string",
-            "description": "Reason for cancellation (optional)",
+            "description": "Page number for pagination (defaults to 1)",
             "optional": True,
         },
     },
-    required=["booking_id"],
+    required=[],
+)
+
+# Define job questions function schema
+job_questions_function = FunctionSchema(
+    name="get_job_questions",
+    description="Get a specific interview question for a job position. Each call returns the next question in sequence.",
+    properties={
+        "position": {
+            "type": "string",
+            "description": "The job position title to get interview questions for (e.g., 'Data Science', 'Java developer', 'AI Consultant')",
+        },
+    },
+    required=["position"],
 )
 
 # Create tools schema
 tools = ToolsSchema(standard_tools=[
-    weather_function,
-    create_booking_function,
-    get_booking_function,
-    delete_booking_function,
-    get_current_date_time_function
+    get_current_date_time_function,
+    job_board_function,
+    job_questions_function
 ])
 
 # Function to register all functions with the LLM service
 def register_functions(llm_service):
     """Register all functions with the LLM service."""
-    llm_service.register_function("get_current_weather", fetch_weather_from_api)
-    llm_service.register_function("create_restaurant_booking", create_restaurant_booking)
-    llm_service.register_function("get_restaurant_booking", get_restaurant_booking)
-    llm_service.register_function("delete_restaurant_booking", delete_restaurant_booking)
     llm_service.register_function("get_current_date_time", get_current_date_time)
+    # llm_service.register_function("fetch_data_science_jobs", fetch_data_science_jobs)
+    llm_service.register_function("get_job_questions", get_job_questions)
