@@ -63,7 +63,7 @@ export class ApiStack extends cdk.Stack {
     this.cluster.addCapacity('DefaultFargateCapacity', {
       maxCapacity: 10,
       minCapacity: 1,
-      instanceType: new ec2.InstanceType('t3.medium'),
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.C7I, ec2.InstanceSize.XLARGE),
     });
 
     // Create a log group for the container
@@ -108,7 +108,7 @@ let container: ecs.ContainerDefinition;
   // Add container to the Fargate task definition
   container = taskDefinition.addContainer('ApiContainer', {
     image: ecs.ContainerImage.fromAsset('../nova-sonic/api', {
-      platform: cdk.aws_ecr_assets.Platform.LINUX_ARM64,
+      platform: cdk.aws_ecr_assets.Platform.LINUX_AMD64,
     }),
     logging: ecs.LogDrivers.awsLogs({
       streamPrefix: 'api',
