@@ -14,8 +14,8 @@ const iceServers = [
   { urls: 'stun:stun.metered.ca:80' },
   {
     urls: 'turn:sg.relay.metered.ca:80',
-    username: 'a4eb45b8d331e70a3a2830fc',
-    credential: 'JPSRWezq5gzaVIe8'
+    username: '<enact>',
+    credential: '<enact>'
   }
 ];
 
