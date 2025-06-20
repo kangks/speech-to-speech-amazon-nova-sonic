@@ -18,6 +18,8 @@ from pipecat_ai_small_webrtc_prebuilt.frontend import SmallWebRTCPrebuiltUI
 
 # Import our separated modules
 from bot import run_bot
+from webrtc_signaling import WebRTCSignalingManager
+from models.webrtc_models import WebRTCOffer
 
 # Load environment variables
 load_dotenv(override=True)
@@ -54,12 +56,14 @@ app.add_middleware(
 pcs_map: Dict[str, SmallWebRTCConnection] = {}
 
 # Configure ICE servers for WebRTC
-ice_servers = [
-    IceServer(
-        urls=os.getenv("STUN_SERVER", "stun:stun.l.google.com:19302"),
-        # urls=os.getenv("STUN_SERVER", "stun:localhost:3478"),
+ice_servers = []
+
+if os.getenv("STUN_SERVER"):
+    ice_servers.append(
+        IceServer(
+            urls=os.getenv("STUN_SERVER")
+        )
     )
-]
 
 # Add TURN server if configured
 if os.getenv("TURN_SERVER"):
@@ -70,6 +74,9 @@ if os.getenv("TURN_SERVER"):
             credential=os.getenv("TURN_PASSWORD"),
         )
     )
+
+# Create WebRTC signaling manager
+webrtc_signaling_manager = WebRTCSignalingManager()
 
 # Mount the frontend at /
 app.mount("/client", SmallWebRTCPrebuiltUI)
@@ -135,6 +142,20 @@ async def get_stats():
     }
 
 
+@app.post("/api/webrtc/offer")
+async def webrtc_offer(offer_data: WebRTCOffer):
+    """
+    Process WebRTC offer for data channel communication
+    """
+    try:
+        # Process the offer using the signaling manager
+        answer = await webrtc_signaling_manager.process_offer(offer_data)
+        return answer
+    except Exception as e:
+        logger.error(f"Error processing WebRTC offer: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown events."""
@@ -179,9 +200,14 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down Nova Sonic API")
+    
+    # Close pipecat connections
     coros = [pc.close() for pc in pcs_map.values()]
     await asyncio.gather(*coros)
     pcs_map.clear()
+    
+    # Close WebRTC signaling connections
+    await webrtc_signaling_manager.close_all_connections()
 
 
 def main():

@@ -8,7 +8,7 @@
 import { Amplify } from 'aws-amplify';
 import { events } from 'aws-amplify/data';
 
-import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport";
+import { SmallWebRTCTransport } from "pipecat-client-web-transports/transports/small-webrtc-transport";
 import {
   Participant,
   RTVIClient,
@@ -16,6 +16,7 @@ import {
 } from "@pipecat-ai/client-js";
 import "./style.css";
 import { VoiceVisualizer } from "./voice-visualizer";
+import { DataChannelClient } from "./data-channel-client";
 
 // Types for AppSync Events data
 interface Conversation {
@@ -82,6 +83,7 @@ class WebRTCApp {
   private smallWebRTCTransport!: SmallWebRTCTransport;
   private rtviClient!: RTVIClient;
   private declare voiceVisualizer: VoiceVisualizer;
+  private dataChannelClient!: DataChannelClient;
   private transcripts: Array<{timestamp: string, role: string, content: string, language?: string, confidence?: number}> = [];
   
   // AppSync Events channels and subscriptions
@@ -99,6 +101,7 @@ class WebRTCApp {
     this.setupDOMElements();
     this.setupDOMEventListeners();
     this.initializeRTVIClient();
+    this.initializeDataChannelClient();
     this.configureAppSync();
 
     // Get bot name from URL query if available
@@ -376,21 +379,34 @@ class WebRTCApp {
     const runtimeConfig = (window as any).runtimeConfig || {};
     
     // Configure ICE servers
-    const stunServer = runtimeConfig.STUN_SERVER || "stun:stun.l.google.com:19302";
+    const stunServer = runtimeConfig.STUN_SERVER;
     const turnServer = runtimeConfig.TURN_SERVER;
     const turnUsername = runtimeConfig.TURN_USERNAME;
     const turnPassword = runtimeConfig.TURN_PASSWORD;
     
-    // Build ICE servers configuration - SmallWebRTCTransport expects string array
-    const iceServers = [stunServer];
+    // Build ICE servers configuration - SmallWebRTCTransport accepts both string URLs and RTCIceServer objects
+    const iceServers: (string | RTCIceServer)[] = [];
+
+    if (stunServer) { 
+      // Format: stun:stun-server.example.com:3478
+      iceServers.push(`stun:${stunServer}`);
+    }
     
     // Add TURN server if configured
     if (turnServer && turnUsername && turnPassword) {
-      // Format: turn:turn-server.example.com:3478?transport=udp&username=user&password=pass
-      iceServers.push(`turn:${turnServer}?username=${encodeURIComponent(turnUsername)}&credential=${encodeURIComponent(turnPassword)}`);
+      iceServers.push({
+        urls: `turn:${turnServer}`,
+        username: turnUsername,
+        credential: turnPassword,
+      });
     }
     
-    transport.iceServers = iceServers;
+    // Convert string URLs to RTCIceServer objects if needed
+    const formattedIceServers = iceServers.map(server =>
+      typeof server === 'string' ? { urls: server } : server
+    );
+    
+    transport.iceServers = formattedIceServers;
 
     // The backend will provide the complete ICE configuration including TURN servers
     // in the WebRTC answer, so we don't need to manually configure TURN here
@@ -401,8 +417,10 @@ class WebRTCApp {
 
     const RTVIConfig: RTVIClientOptions = {
       // need to understand why it is complaining
+      waitForICEGathering: true,
       // @ts-ignore
       transport,
+      iceServers: formattedIceServers,
       params: {
         baseUrl: baseUrl,
       },
@@ -619,6 +637,93 @@ class WebRTCApp {
 
     this.rtviClient = new RTVIClient(RTVIConfig);
     this.smallWebRTCTransport = transport;
+  }
+
+  /**
+   * Initialize the WebRTC data channel client
+   */
+  private initializeDataChannelClient(): void {
+    // Get runtime configuration
+    const runtimeConfig = (window as any).runtimeConfig || {};
+    
+    // Configure API endpoint using runtime configuration
+    const apiEndpoint = `${import.meta.env.VITE_API_ENDPOINT}/api/webrtc/offer`;
+    
+    // Get ICE servers configuration
+    const stunServer = runtimeConfig.STUN_SERVER;
+    const turnServer = runtimeConfig.TURN_SERVER;
+    const turnUsername = runtimeConfig.TURN_USERNAME;
+    const turnPassword = runtimeConfig.TURN_PASSWORD;
+    
+    // Build ICE servers configuration
+    const iceServers: RTCIceServer[] = [];
+    
+    if (stunServer) {
+      iceServers.push({ urls: `stun:${stunServer}` });
+    } else {
+      // Default STUN server
+      iceServers.push({ urls: 'stun:stun.l.google.com:19302' });
+    }
+    
+    // Add TURN server if configured
+    if (turnServer && turnUsername && turnPassword) {
+      iceServers.push({
+        urls: `turn:${turnServer}`,
+        username: turnUsername,
+        credential: turnPassword,
+      });
+    }
+    
+    this.dataChannelClient = new DataChannelClient({
+      apiEndpoint: apiEndpoint,
+      iceServers: iceServers,
+      onConnected: () => {
+        this.log("WebRTC data channel opened", "status");
+      },
+      onDisconnected: () => {
+        this.log("WebRTC data channel closed", "status");
+      },
+      onMessage: (message) => {
+        this.handleDataChannelMessage(message);
+      },
+      onError: (error) => {
+        this.log(`WebRTC data channel error: ${error}`, "error");
+      }
+    });
+  }
+
+  /**
+   * Handle messages received through the WebRTC data channel
+   */
+  private handleDataChannelMessage(message: any): void {
+    try {
+      this.log(`Received message via data channel: ${JSON.stringify(message)}`, "status");
+      
+      // Handle different message types
+      if (message.type === 'audio_start') {
+        this.log("Bot started speaking", "status");
+      } else if (message.type === 'audio_end') {
+        this.log("Bot stopped speaking", "status");
+      } else if (message.type === 'transcript') {
+        // Handle transcript messages
+        if (message.transcript) {
+          this.store_conversation(message.transcript);
+        }
+      }
+    } catch (error) {
+      this.log(`Error handling data channel message: ${error}`, "error");
+    }
+  }
+
+  /**
+   * Send a message through the WebRTC data channel
+   */
+  public sendDataChannelMessage(message: any): void {
+    if (this.dataChannelClient && this.connected) {
+      this.dataChannelClient.sendMessage(message);
+    } else {
+      this.log("Cannot send message: data channel not connected", "error");
+    }
   }
 
   private setupDOMElements(): void {
@@ -1340,6 +1445,11 @@ class WebRTCApp {
 
     this.connecting = true;
     this.clearAllLogs();
+    
+    // Initialize the data channel client if needed
+    if (!this.dataChannelClient) {
+      this.initializeDataChannelClient();
+    }
 
     // Update UI to show connecting state
     this.connectBtn.setAttribute("data-state", "connecting");
@@ -1362,6 +1472,19 @@ class WebRTCApp {
 
       // Connect to the bot
       await this.rtviClient.connect();
+      
+      // Connect the data channel client
+      try {
+        const connected = await this.dataChannelClient.connect();
+        if (connected) {
+          this.log("WebRTC data channel connection initiated", "status");
+        } else {
+          this.log("WebRTC data channel connection failed", "error");
+        }
+      } catch (error) {
+        this.log(`Failed to connect data channel: ${error}`, "error");
+        console.error("Data channel connection error:", error);
+      }
       
       // Log successful connection with ICE server info
       this.log("WebRTC connection established successfully", "status");
@@ -1394,6 +1517,12 @@ class WebRTCApp {
 
   private async stop(): Promise<void> {
     try {
+      // Disconnect the data channel first
+      if (this.dataChannelClient) {
+        await this.dataChannelClient.disconnect();
+        this.log("WebRTC data channel disconnected", "status");
+      }
+      
       // Disconnect from the bot
       await this.rtviClient.disconnect();
 
@@ -1550,14 +1679,31 @@ declare global {
   interface Window {
     webRTCApp: {
       shutdown(): void;
+      sendDataChannelMessage(message: any): void;
     };
   }
 }
 
 // Initialize the application
 document.addEventListener("DOMContentLoaded", () => {
-  // @ts-ignore - We know this is compatible
-  window.webRTCApp = new WebRTCApp();
+  const app = new WebRTCApp();
+  
+  // Expose the app instance to the window for external access
+  window.webRTCApp = {
+    shutdown: () => app.shutdown(),
+    sendDataChannelMessage: (message: any) => app.sendDataChannelMessage(message)
+  };
+  
+  // Add event listener for audio data from the server
+  document.addEventListener('nova-sonic-audio', (event: any) => {
+    if (app && event.detail) {
+      app.sendDataChannelMessage({
+        type: 'audio-data',
+        label: 'nova-sonic',
+        data: event.detail
+      });
+    }
+  });
 
   // Cleanup when leaving the page
   window.addEventListener("beforeunload", () => {
