@@ -7,3 +7,6 @@
 [submodule "pipecat"]
 	path = pipecat
 	url = https://github.com/pipecat-ai/pipecat.git
+[submodule "pipecat-client-web-transports"]
+	path = pipecat-client-web-transports
+	url = https://github.com/pipecat-ai/pipecat-client-web-transports.git

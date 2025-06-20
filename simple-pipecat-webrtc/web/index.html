@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC Audio Connection</title>
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>WebRTC Audio Connection</h1>
+    
+    <div class="status-container">
+      <div class="status-indicator" id="connectionStatus">Disconnected</div>
+    </div>
+    
+    <div class="control-panel">
+      <h2>Connection Controls</h2>
+      <button id="connectButton" class="btn">Connect</button>
+      <button id="disconnectButton" class="btn" disabled>Disconnect</button>
+    </div>
+    
+    <div class="audio-panel">
+      <h2>Audio Controls</h2>
+      
+      <div class="audio-input">
+        <h3>Send Audio</h3>
+        <input type="file" id="audioFileInput" accept="audio/*" />
+        <button id="sendAudioButton" class="btn" disabled>Send Audio</button>
+        <div class="progress-container">
+          <div id="sendProgress" class="progress-bar"></div>
+        </div>
+      </div>
+      
+      <div class="audio-output">
+        <h3>Received Audio</h3>
+        <audio id="audioPlayer" controls></audio>
+        <div class="progress-container">
+          <div id="receiveProgress" class="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="log-container">
+      <h2>Connection Log</h2>
+      <div id="logOutput" class="log"></div>
+    </div>
+  </div>
+  
+  <script type="module" src="./src/app.ts"></script>
+</body>
+</html>
