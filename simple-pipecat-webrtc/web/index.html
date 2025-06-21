@@ -3,38 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebRTC Audio Connection</title>
+  <title>Nova Sonic Voice Conversation</title>
   <link rel="stylesheet" href="./src/styles.css">
 </head>
 <body>
   <div class="container">
-    <h1>WebRTC Audio Connection</h1>
+    <h1>Nova Sonic Voice Conversation</h1>
     
     <div class="status-container">
       <div class="status-indicator" id="connectionStatus">Disconnected</div>
+      <div class="ai-status-indicator" id="aiStatusIndicator">AI: Idle</div>
     </div>
     
     <div class="control-panel">
       <h2>Connection Controls</h2>
-      <button id="connectButton" class="btn">Connect</button>
-      <button id="disconnectButton" class="btn" disabled>Disconnect</button>
+      <button id="connectionToggleButton" class="btn">Connect</button>
+    </div>
+    
+    <div class="conversation-panel">
+      <h2>Conversation</h2>
+      <div id="conversationContainer" class="conversation-container"></div>
     </div>
     
     <div class="audio-panel">
       <h2>Audio Controls</h2>
       
+      <div class="interaction-modes">
+        <h3>Interaction Mode</h3>
+        <div class="mode-controls">
+          <div class="mode-option">
+            <input type="radio" id="modeManual" name="interactionMode" value="manual" checked>
+            <label for="modeManual">Manual</label>
+            <span class="mode-indicator mode-manual active"></span>
+          </div>
+          <div class="mode-option">
+            <input type="radio" id="modePushToTalk" name="interactionMode" value="push-to-talk">
+            <label for="modePushToTalk">Push-to-Talk</label>
+            <span class="mode-indicator mode-push-to-talk"></span>
+          </div>
+          <div class="mode-option">
+            <label class="toggle-switch">
+              <input type="checkbox" id="alwaysListeningToggle">
+              <span class="toggle-slider"></span>
+              Always Listening
+            </label>
+            <span class="mode-indicator mode-always-listening"></span>
+          </div>
+        </div>
+      </div>
+      
       <div class="audio-input">
-        <h3>Send Audio</h3>
-        <input type="file" id="audioFileInput" accept="audio/*" />
-        <button id="sendAudioButton" class="btn" disabled>Send Audio</button>
+        <h3>Microphone Input</h3>
+        <div class="mic-controls">
+          <button id="startRecordingButton" class="btn" disabled>Start Recording</button>
+          <button id="stopRecordingButton" class="btn" disabled>Stop Recording</button>
+          <button id="pushToTalkButton" class="btn push-to-talk" disabled>Push to Talk</button>
+          <div class="recording-indicator" id="recordingIndicator">Not Recording</div>
+        </div>
         <div class="progress-container">
           <div id="sendProgress" class="progress-bar"></div>
         </div>
       </div>
       
       <div class="audio-output">
-        <h3>Received Audio</h3>
+        <h3>AI Voice</h3>
         <audio id="audioPlayer" controls></audio>
+        <button id="interruptButton" class="btn interrupt-btn" disabled>Interrupt AI</button>
         <div class="progress-container">
           <div id="receiveProgress" class="progress-bar"></div>
         </div>
