@@ -10,3 +10,6 @@
 [submodule "pipecat-client-web-transports"]
 	path = pipecat-client-web-transports
 	url = https://github.com/pipecat-ai/pipecat-client-web-transports.git
+[submodule "amazon-nova-samples"]
+	path = amazon-nova-samples
+	url = https://github.com/aws-samples/amazon-nova-samples
