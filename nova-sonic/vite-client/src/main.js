@@ -8,7 +8,6 @@ let socket = null;
 let mediaRecorder = null;
 let audioContext = null;
 let audioPlayer = null;
-let sessionStarted = false;
 let promptName = null;
 let textContentName = null;
 let audioContentName = null;
@@ -56,17 +55,18 @@ async function initApp() {
 
 // Handle session change (start/stop)
 async function handleSessionChange() {
-  console.log("Button clicked, session started:", sessionStarted);
   const startButton = document.getElementById('startButton');
+  const isSessionActive = startButton.textContent === "End Conversation";
   
-  if (sessionStarted) {
+  console.log("Button clicked, session active:", isSessionActive);
+  
+  if (isSessionActive) {
     // End session
     endSession();
     audioPlayer.bargeIn();
     startButton.textContent = "Start Conversation";
     startButton.classList.remove('recording');
     updateStatus("Ready");
-    sessionStarted = false;
   } else {
     // Start session
     chatMessages = {};
@@ -80,13 +80,12 @@ async function handleSessionChange() {
       
       // Connect WebSocket
       if (socket === null || socket.readyState !== WebSocket.OPEN) {
-        connectWebSocket();
+        await connectWebSocket();
       }
       
       // Start microphone
       await startMicrophone();
       
-      sessionStarted = true;
       updateStatus("Recording...", "recording");
     } catch (error) {
       console.error('Error starting session:', error);
@@ -98,66 +97,68 @@ async function handleSessionChange() {
 }
 
 // Connect to WebSocket server
-function connectWebSocket() {
-  // Generate UUIDs for the session
-  promptName = crypto.randomUUID();
-  textContentName = crypto.randomUUID();
-  audioContentName = crypto.randomUUID();
-  
-  // Get WebSocket URL from environment or use default
-  const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8081";
-  console.log("Connecting to WebSocket:", wsUrl);
-  
-  socket = new WebSocket(wsUrl);
-  
-  socket.onopen = () => {
-    console.log("WebSocket connected!");
-    updateStatus("Connected", "connected");
+async function connectWebSocket() {
+  return new Promise((resolve, reject) => {
+    // Generate UUIDs for the session
+    promptName = crypto.randomUUID();
+    textContentName = crypto.randomUUID();
+    audioContentName = crypto.randomUUID();
     
-    // Start session events
-    sendEvent(S2sEvent.sessionStart());
+    // Get WebSocket URL from environment or use default
+    const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:8081";
+    console.log("Connecting to WebSocket:", wsUrl);
     
-    // Configure audio output
-    const audioConfig = S2sEvent.DEFAULT_AUDIO_OUTPUT_CONFIG;
+    socket = new WebSocket(wsUrl);
     
-    // Start prompt
-    sendEvent(S2sEvent.promptStart(promptName, audioConfig));
+    socket.onopen = () => {
+      console.log("WebSocket connected!");
+      updateStatus("Connected", "connected");
+      
+      // Start session events
+      sendEvent(S2sEvent.sessionStart());
+      
+      // Configure audio output
+      const audioConfig = S2sEvent.DEFAULT_AUDIO_OUTPUT_CONFIG;
+      
+      // Start prompt
+      sendEvent(S2sEvent.promptStart(promptName, audioConfig));
+      
+      // Send system prompt
+      sendEvent(S2sEvent.contentStartText(promptName, textContentName));
+      sendEvent(S2sEvent.textInput(promptName, textContentName, S2sEvent.DEFAULT_SYSTEM_PROMPT));
+      sendEvent(S2sEvent.contentEnd(promptName, textContentName));
+      
+      // Start audio content
+      sendEvent(S2sEvent.contentStartAudio(promptName, audioContentName));
+      
+      resolve();
+    };
     
-    // Send system prompt
-    sendEvent(S2sEvent.contentStartText(promptName, textContentName));
-    sendEvent(S2sEvent.textInput(promptName, textContentName, S2sEvent.DEFAULT_SYSTEM_PROMPT));
-    sendEvent(S2sEvent.contentEnd(promptName, textContentName));
+    // Handle connection errors
+    socket.onerror = (error) => {
+      console.error("WebSocket Error:", error);
+      updateStatus("WebSocket Error", "disconnected");
+      reject(error);
+    };
     
-    // Start audio content
-    sendEvent(S2sEvent.contentStartAudio(promptName, audioContentName));
-  };
-  
-  // Handle incoming messages
-  socket.onmessage = (message) => {
-    const event = JSON.parse(message.data);
-    handleIncomingMessage(event);
-  };
-  
-  // Handle errors
-  socket.onerror = (error) => {
-    console.error("WebSocket Error:", error);
-    updateStatus("WebSocket Error", "disconnected");
-  };
-  
-  // Handle connection close
-  socket.onclose = () => {
-    console.log("WebSocket Disconnected");
-    if (sessionStarted) {
-      updateStatus("WebSocket Disconnected", "disconnected");
-      // Reset UI
+    // Handle incoming messages
+    socket.onmessage = (message) => {
+      const event = JSON.parse(message.data);
+      handleIncomingMessage(event);
+    };
+    
+    // Handle connection close
+    socket.onclose = () => {
+      console.log("WebSocket Disconnected");
       const startButton = document.getElementById('startButton');
-      if (startButton) {
+      if (startButton && startButton.textContent === "End Conversation") {
+        updateStatus("WebSocket Disconnected", "disconnected");
+        // Reset UI
         startButton.textContent = "Start Conversation";
         startButton.classList.remove('recording');
       }
-      sessionStarted = false;
-    }
-  };
+    };
+  });
 }
 
 // Send event to WebSocket
@@ -262,7 +263,8 @@ async function startMicrophone() {
     const targetSampleRate = 16000;
     
     processor.onaudioprocess = async (e) => {
-      if (sessionStarted) {
+      const startButton = document.getElementById('startButton');
+      if (startButton && startButton.textContent === "End Conversation") {
         const inputBuffer = e.inputBuffer;
         
         // Create an offline context for resampling
@@ -329,10 +331,12 @@ async function startMicrophone() {
 
 // End the session
 function endSession() {
-  if (socket) {
+  console.log("Ending session...");
+  if (socket && socket.readyState === WebSocket.OPEN) {
     // Close microphone
     if (window.audioCleanup) {
       window.audioCleanup();
+      console.log("Microphone recording stopped");
     }
     
     // Close session
@@ -342,6 +346,7 @@ function endSession() {
     
     // Close WebSocket
     socket.close();
+    console.log("WebSocket closed");
   }
 }
 
