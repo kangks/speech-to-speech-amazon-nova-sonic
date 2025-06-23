@@ -12,13 +12,8 @@ from smithy_aws_core.credentials_resolvers.environment import EnvironmentCredent
 from integration import inline_agent
 from config import Config
 
+Config.configure_logging()
 logger = logging.getLogger(__name__)
-
-def debug_print(message):
-    """Print only if debug mode is enabled"""
-    if Config.DEBUG:
-        logger.debug(message)
-
 
 class S2sSessionManager:
     """Manages bidirectional streaming with AWS Bedrock using asyncio"""
@@ -84,7 +79,7 @@ class S2sSessionManager:
             # Wait a bit to ensure everything is set up
             await asyncio.sleep(0.1)
             
-            debug_print("Stream initialized successfully")
+            logger.debug("Stream initialized successfully")
             return self
         except Exception as e:
             self.is_active = False
@@ -95,10 +90,12 @@ class S2sSessionManager:
         try:
             """Send a raw event to the Bedrock stream."""
             if not self.stream or not self.is_active:
-                debug_print("Stream not initialized or closed")
+                logger.debug("Stream not initialized or closed")
                 return
             
             event_json = json.dumps(event_data)
+
+            logger.debug(f"Sending event: {event_json[0:180]}")  # Print first 180 characters for brevity
             #if "audioInput" not in event_data["event"]:
             #    print(event_json)
             event = InvokeModelWithBidirectionalStreamInputChunk(
@@ -111,7 +108,7 @@ class S2sSessionManager:
                 self.close()
             
         except Exception as e:
-            debug_print(f"Error sending event: {str(e)}")
+            logger.debug(f"Error sending event: {str(e)}")
     
     async def _process_audio_input(self):
         """Process audio input from the queue and send to Bedrock."""
@@ -126,8 +123,10 @@ class S2sSessionManager:
                 audio_bytes = data.get('audio_bytes')
                 
                 if not audio_bytes or not prompt_name or not content_name:
-                    debug_print("Missing required audio data properties")
+                    logger.debug("Missing required audio data properties")
                     continue
+
+                logger.debug(f"Processing audio input for prompt '{prompt_name}' and content '{content_name}'")  
 
                 # Create the audio input event
                 audio_event = S2sEvent.audio_input(prompt_name, content_name, audio_bytes.decode('utf-8') if isinstance(audio_bytes, bytes) else audio_bytes)
@@ -138,7 +137,7 @@ class S2sSessionManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                debug_print(f"Error processing audio: {e}")
+                logger.debug(f"Error processing audio: {e}")
                 if DEBUG:
                     import traceback
                     traceback.print_exc()
@@ -176,7 +175,7 @@ class S2sSessionManager:
                             self.toolUseContent = json_data['event']['toolUse']
                             self.toolName = json_data['event']['toolUse']['toolName']
                             self.toolUseId = json_data['event']['toolUse']['toolUseId']
-                            debug_print(f"Tool use detected: {self.toolName}, ID: {self.toolUseId}, {json.dumps(json_data['event'])}")
+                            logger.debug(f"Tool use detected: {self.toolName}, ID: {self.toolUseId}, {json.dumps(json_data['event'])}")
 
                         # Process tool use when content ends
                         elif event_name == 'contentEnd' and json_data['event'][event_name].get('type') == 'TOOL':

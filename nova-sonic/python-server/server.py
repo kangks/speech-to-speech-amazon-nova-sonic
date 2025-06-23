@@ -17,11 +17,6 @@ logger = logging.getLogger(__name__)
 MCP_CLIENT = None
 STRANDS_AGENT = None
 
-def debug_print(message):
-    """Print only if debug mode is enabled"""
-    if Config.DEBUG:
-        print(message)
-
 class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         client_ip = self.client_address[0]
@@ -90,6 +85,7 @@ def start_health_check_server(health_host, health_port):
 
 async def websocket_handler(websocket):
     stream_manager = None
+    logger.debug("WebSocket connection established")
     try:
         async for message in websocket:
             try:
@@ -116,11 +112,13 @@ async def websocket_handler(websocket):
 
                         event_type = list(data['event'].keys())[0]
                         if event_type == "audioInput":
-                            debug_print(message[0:180])
+                            logger.debug(message[0:180])
                         else:
-                            debug_print(message)
+                            logger.debug(message)
                             
                     if event_type:
+                        logger.info(f"Received event: {event_type}")
+                        logger.info(f"Event data: {data['event']}")
                         # Store prompt name and content names if provided
                         if event_type == 'promptStart':
                             stream_manager.prompt_name = data['event']['promptStart']['promptName']
@@ -143,9 +141,8 @@ async def websocket_handler(websocket):
                 print("Invalid JSON received from WebSocket")
             except Exception as e:
                 print(f"Error processing WebSocket message: {e}")
-                if DEBUG:
-                    import traceback
-                    traceback.print_exc()
+                import traceback
+                traceback.print_exc()
     except websockets.exceptions.ConnectionClosed:
         print("WebSocket connection closed")
     finally:
@@ -224,10 +221,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
     except Exception as e:
-        logger.error(f"Server error: {e}")
-        if Config.DEBUG:
-            import traceback
-            traceback.print_exc()
+        logger.exception(f"Server error: {e}")
     finally:
         if MCP_CLIENT:
             MCP_CLIENT.cleanup()

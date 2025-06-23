@@ -14,7 +14,6 @@ class Config:
     HEALTH_PORT = int(os.getenv("HEALTH_PORT", "8080")) if os.getenv("HEALTH_PORT") else None
     
     # Debug and logging
-    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
     LOGLEVEL = os.getenv("LOGLEVEL", "INFO").upper()
     LOG_FILE = os.getenv("LOG_FILE", None)
     
