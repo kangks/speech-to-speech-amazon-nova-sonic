@@ -65,13 +65,27 @@ class S2sEvent {
         }
     ];
   
-    /**
-     * Create a sessionStart event
-     * @param {Object} inferenceConfig - Inference configuration
-     * @returns {Object} - sessionStart event
-     */
     static sessionStart(inferenceConfig = S2sEvent.DEFAULT_INFER_CONFIG) {
         return { event: { sessionStart: { inferenceConfiguration: inferenceConfig } } };
+    }
+
+    /**
+     * Create a sessionStart event
+     * @param {string} promptName - Prompt name
+     * @param {string} textContentName - Text Content name
+     * @param {string} audioContentName - Audio Content name
+     * @returns {Object} - sessionStart event
+     */
+    static init(promptName, textContentName, audioContentName) {
+        return { 
+            "event": { 
+                "init": { 
+                    "promptName": promptName,
+                    "textContentName": textContentName,
+                    "audioContentName": audioContentName
+                } 
+            } 
+        };
     }
   
     /**

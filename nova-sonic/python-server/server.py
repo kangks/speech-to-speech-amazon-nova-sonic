@@ -43,7 +43,6 @@ class HealthCheckHandler(http.server.BaseHTTPRequestHandler):
         # Override to use our logger instead
         pass
 
-
 def start_health_check_server(health_host, health_port):
     """Start the HTTP health check server on port 80."""
     try:
@@ -95,60 +94,83 @@ async def websocket_handler(websocket):
                 if 'event' in data:
                     if stream_manager == None:
 
+                        # Initialize the stream manager with the model ID and reg
+                        prompt_name=data['event'].get('init', {}).get('promptName', '')
+                        text_content_name=data['event'].get('init', {}).get('textContentName', '')
+                        audio_content_name=data['event'].get('init', {}).get('audioContentName', '')
+
+                        logger.info(f"Initializing stream manager with prompt: {prompt_name}, text content: {text_content_name}, audio content: {audio_content_name}")
+
                         """Handle WebSocket connections from the frontend."""
                         # Create a new stream manager for this connection
                         stream_manager = S2sSessionManager(
                             model_id=Config.NOVA_SONIC_MODEL_ID,
                             region=Config.AWS_DEFAULT_REGION,
                             mcp_client=MCP_CLIENT,
-                            strands_agent=STRANDS_AGENT
+                            strands_agent=STRANDS_AGENT,
+                            prompt_name=prompt_name,
+                            text_content_name=text_content_name,
+                            audio_content_name=audio_content_name
+
                         )
-                        
+
                         # Initialize the Bedrock stream
                         await stream_manager.initialize_stream()
                         
                         # Start a task to forward responses from Bedrock to the WebSocket
                         forward_task = asyncio.create_task(forward_responses(websocket, stream_manager))
 
-                        event_type = list(data['event'].keys())[0]
-                        if event_type == "audioInput":
-                            logger.debug(message[0:180])
-                        else:
-                            logger.debug(message)
+                    event_type = list(data['event'].keys())[0]
+                    if event_type == "audioInput":
+                        logger.debug(message[0:180])
+                    else:
+                        logger.debug(message)
                             
                     if event_type:
-                        logger.info(f"Received event: {event_type}")
-                        logger.info(f"Event data: {data['event']}")
-                        # Store prompt name and content names if provided
-                        if event_type == 'promptStart':
-                            stream_manager.prompt_name = data['event']['promptStart']['promptName']
-                        elif event_type == 'contentStart' and data['event']['contentStart'].get('type') == 'AUDIO':
-                            stream_manager.audio_content_name = data['event']['contentStart']['contentName']
-                        
+                        if event_type == 'init':
+                            logger.info(f"Received event: {event_type}")
                         # Handle audio input separately
-                        if event_type == 'audioInput':
+                        elif event_type == 'audioInput':
                             # Extract audio data
                             prompt_name = data['event']['audioInput']['promptName']
                             content_name = data['event']['audioInput']['contentName']
                             audio_base64 = data['event']['audioInput']['content']
-                            
+                            # logger.info(f"Received audio input for prompt: {prompt_name}, content: {content_name}") 
                             # Add to the audio queue
                             stream_manager.add_audio_chunk(prompt_name, content_name, audio_base64)
+                        elif event_type == 'sessionEnd':
+                            logger.info(f"Received event: {event_type}")
+                            # Handle session end event
+                            await stream_manager.send_raw_event(data)
+                            logger.info("Session end event received, closing connection")
+                        elif event_type == 'contentEnd':
+                            logger.info(f"Received event: {event_type}")
+                            # Handle session end event
+                            await stream_manager.send_raw_event(data)
+                            logger.info("Content end event received, closing connection")
+                        elif event_type == 'promptEnd':
+                            logger.info(f"Received event: {event_type}")
+                            # Handle session end event
+                            await stream_manager.send_raw_event(data)
+                            logger.info("Prompt end event received, closing connection")
                         else:
-                            # Send other events directly to Bedrock
+                            logger.info(f"Received event in else: {event_type}")
+                            # For backward compatibility, send other events directly to Bedrock
                             await stream_manager.send_raw_event(data)
             except json.JSONDecodeError:
-                print("Invalid JSON received from WebSocket")
+                logger.exception("Invalid JSON received from WebSocket")
             except Exception as e:
-                print(f"Error processing WebSocket message: {e}")
-                import traceback
-                traceback.print_exc()
+                logger.exception(f"Error processing WebSocket message: {e}")
     except websockets.exceptions.ConnectionClosed:
-        print("WebSocket connection closed")
+        logger.exception("WebSocket connection closed")
+    except Exception as e:
+        logger.exception(f"Error in websocket handler: {e}")
     finally:
         # Clean up
-        await stream_manager.close()
-        forward_task.cancel()
+        if stream_manager:
+            await stream_manager.close()
+        if 'forward_task' in locals() and forward_task:
+            forward_task.cancel()
         if websocket:
             websocket.close()
         if MCP_CLIENT:
@@ -172,7 +194,7 @@ async def forward_responses(websocket, stream_manager):
         # Task was cancelled
         pass
     except Exception as e:
-        print(f"Error forwarding responses: {e}")
+        logger.exception(f"Error forwarding responses: {e}")
         # Close connection
         websocket.close()
         stream_manager.close()
@@ -203,7 +225,7 @@ async def main():
             global STRANDS_AGENT
             STRANDS_AGENT = StrandsAgent()
         except Exception as ex:
-            logger.error(f"Failed to start Strands agent: {ex}")
+            logger.exception(f"Failed to start Strands agent: {ex}")
 
     try:
         # Start WebSocket server

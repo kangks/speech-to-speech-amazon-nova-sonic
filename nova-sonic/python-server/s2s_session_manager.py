@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class S2sSessionManager:
     """Manages bidirectional streaming with AWS Bedrock using asyncio"""
     
-    def __init__(self, region, model_id='amazon.nova-sonic-v1:0', mcp_client=None, strands_agent=None):
+    def __init__(self, region, model_id='amazon.nova-sonic-v1:0', mcp_client=None, strands_agent=None, prompt_name=None, text_content_name=None, audio_content_name=None):
         """Initialize the stream manager."""
         self.model_id = model_id
         self.region = region
@@ -33,9 +33,9 @@ class S2sSessionManager:
         self.bedrock_client = None
         
         # Session information
-        self.prompt_name = None  # Will be set from frontend
-        self.content_name = None  # Will be set from frontend
-        self.audio_content_name = None  # Will be set from frontend
+        self.prompt_name = prompt_name  # Will be set from frontend
+        self.text_content_name = text_content_name  # Will be set from frontend
+        self.audio_content_name = audio_content_name  # Will be set from frontend
         self.toolUseContent = ""
         self.toolUseId = ""
         self.toolName = ""
@@ -68,8 +68,16 @@ class S2sSessionManager:
             self.stream = await self.bedrock_client.invoke_model_with_bidirectional_stream(
                 InvokeModelWithBidirectionalStreamOperationInput(model_id=self.model_id)
             )
+
             self.is_active = True
-            
+
+            await self.send_raw_event(S2sEvent.session_start())
+            await self.send_raw_event(S2sEvent.prompt_start(self.prompt_name))
+            await self.send_raw_event(S2sEvent.content_start_text(self.prompt_name, self.text_content_name))
+            await self.send_raw_event(S2sEvent.text_input(self.prompt_name, self.text_content_name))
+            await self.send_raw_event(S2sEvent.content_end(self.prompt_name, self.text_content_name))
+            await self.send_raw_event(S2sEvent.content_start_audio(self.prompt_name, self.audio_content_name))
+
             # Start listening for responses
             self.response_task = asyncio.create_task(self._process_responses())
 
@@ -88,6 +96,11 @@ class S2sSessionManager:
     
     async def send_raw_event(self, event_data):
         try:
+            event_type = list(event_data['event'].keys())[0]
+            if event_type != 'audioInput':
+                logger.debug(f"send_raw_event: event of type: {event_type}") 
+            # logger.info(f"Sending event: {event_data['event'] if 'event' in event_data else 'Unknown event'}")
+
             """Send a raw event to the Bedrock stream."""
             if not self.stream or not self.is_active:
                 logger.debug("Stream not initialized or closed")
@@ -137,10 +150,7 @@ class S2sSessionManager:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.debug(f"Error processing audio: {e}")
-                if DEBUG:
-                    import traceback
-                    traceback.print_exc()
+                logger.exception(f"Error processing audio: {e}")
     
     def add_audio_chunk(self, prompt_name, content_name, audio_data):
         """Add an audio chunk to the queue."""

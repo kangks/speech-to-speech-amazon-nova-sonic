@@ -114,23 +114,8 @@ async function connectWebSocket() {
       console.log("WebSocket connected!");
       updateStatus("Connected", "connected");
       
-      // Start session events
-      sendEvent(S2sEvent.sessionStart());
-      
-      // Configure audio output
-      const audioConfig = S2sEvent.DEFAULT_AUDIO_OUTPUT_CONFIG;
-      
-      // Start prompt
-      sendEvent(S2sEvent.promptStart(promptName, audioConfig));
-      
-      // Send system prompt
-      sendEvent(S2sEvent.contentStartText(promptName, textContentName));
-      sendEvent(S2sEvent.textInput(promptName, textContentName, S2sEvent.DEFAULT_SYSTEM_PROMPT));
-      sendEvent(S2sEvent.contentEnd(promptName, textContentName));
-      
-      // Start audio content
-      sendEvent(S2sEvent.contentStartAudio(promptName, audioContentName));
-      
+      // Initialiez the session
+      sendEvent(S2sEvent.init(promptName, textContentName, audioContentName));
       resolve();
     };
     

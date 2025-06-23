@@ -30,6 +30,79 @@ class S2sEvent:
           "encoding": "base64",
           "audioType": "SPEECH"
         }
+  DEFAULT_TOOL_CONFIG = {
+          "tools": [
+              {
+                  "toolSpec": {
+                      "name": "getDateTool",
+                      "description": "get information about the current day",
+                      "inputSchema": {
+                          "json": '''{
+                            "$schema": "http://json-schema.org/draft-07/schema#",
+                            "type": "object",
+                            "properties": {},
+                            "required": []
+                        }'''
+                      }
+                  }
+              },
+              {
+                  "toolSpec": {
+                      "name": "locationMcpTool",
+                      "description": "Access location services like finding places, getting place details, and geocoding. Use with tool names: search_places, get_place, search_nearby, reverse_geocode",
+                      "inputSchema": {
+                          "json": '''{
+                            "$schema": "http://json-schema.org/draft-07/schema#",
+                            "type": "object",
+                            "properties": {
+                                "argName1": {
+                                    "type": "string",
+                                    "description": "JSON string containing 'tool' (one of: search_places, get_place, search_nearby, reverse_geocode) and 'params' (the parameters for the tool)"
+                                }
+                            },
+                            "required": ["argName1"]
+                        }'''
+                      }
+                  }
+              },
+              {
+                  "toolSpec": {
+                      "name": "getBookingDetails",
+                      "description": "Get booking details by booking ID or manage bookings",
+                      "inputSchema": {
+                          "json": '''{
+                            "$schema": "http://json-schema.org/draft-07/schema#",
+                            "type": "object",
+                            "properties": {
+                                "operation": {
+                                    "type": "string",
+                                    "description": "The operation to perform (get_booking, create_booking, update_booking, delete_booking, list_bookings)",
+                                    "enum": ["get_booking", "create_booking", "update_booking", "delete_booking", "list_bookings"]
+                                },
+                                "booking_id": {
+                                    "type": "string",
+                                    "description": "The ID of the booking to retrieve, update, or delete"
+                                },
+                                "booking_details": {
+                                    "type": "object",
+                                    "description": "The booking details to create"
+                                },
+                                "update_data": {
+                                    "type": "object",
+                                    "description": "The data to update for a booking"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "description": "The maximum number of bookings to return when listing"
+                                }
+                            },
+                            "required": ["operation"]
+                        }'''
+                      }
+                  }
+              }
+          ]
+        }
   BYOLLM_TOOL_CONFIG = {
     "tools": [
         {
@@ -66,7 +139,7 @@ class S2sEvent:
     return {"event":{"sessionStart":{"inferenceConfiguration":inference_config}}}
 
   @staticmethod
-  def prompt_start2(prompt_name, 
+  def prompt_start(prompt_name, 
                    audio_output_config=DEFAULT_AUDIO_OUTPUT_CONFIG, 
                    tool_config=BYOLLM_TOOL_CONFIG):
     return {
@@ -86,7 +159,7 @@ class S2sEvent:
         }
 
   @staticmethod
-  def content_start_text(prompt_name, content_name):
+  def content_start_text(prompt_name, content_name, role="SYSTEM"):
     return {
         "event":{
         "contentStart":{
@@ -94,7 +167,7 @@ class S2sEvent:
           "contentName":content_name,
           "type":"TEXT",
           "interactive":True,
-          "role": "SYSTEM",
+          "role": role,
           "textInputConfiguration":{
             "mediaType":"text/plain"
             }
@@ -134,6 +207,7 @@ class S2sEvent:
           "contentName":content_name,
           "type":"AUDIO",
           "interactive":True,
+          "role": "USER",
           "audioInputConfiguration":audio_input_config
         }
       }
@@ -180,7 +254,7 @@ class S2sEvent:
           "promptName": prompt_name,
           "contentName": content_name,
           "content": content,
-          #"role": "TOOL"
+          # "role": "TOOL"
         }
       }
     }
