@@ -31,5 +31,7 @@ COPY . .
 EXPOSE 8081
 EXPOSE 8080
 
+RUN mkdir -p /tmp/log/
+
 # Command to run the application
 CMD ["python", "server.py"]

@@ -22,7 +22,6 @@ var/
 p13venv/
 
 # Environment
-.env
 .venv
 venv/
 ENV/

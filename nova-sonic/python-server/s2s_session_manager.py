@@ -9,7 +9,7 @@ from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient, InvokeModelWith
 from aws_sdk_bedrock_runtime.models import InvokeModelWithBidirectionalStreamInputChunk, BidirectionalInputPayloadPart
 from aws_sdk_bedrock_runtime.config import Config as BedrockConfig, HTTPAuthSchemeResolver, SigV4AuthScheme
 from smithy_aws_core.credentials_resolvers.environment import EnvironmentCredentialsResolver
-from integration import inline_agent
+from integration import inline_agent, interviewer_agent
 from config import Config
 
 Config.configure_logging()
@@ -72,11 +72,17 @@ class S2sSessionManager:
             self.is_active = True
 
             await self.send_raw_event(S2sEvent.session_start())
+            logger.info(f"Session started with model {self.model_id} in region {self.region}")
             await self.send_raw_event(S2sEvent.prompt_start(self.prompt_name))
+            logger.info(f"Prompt started: {self.prompt_name}")
             await self.send_raw_event(S2sEvent.content_start_text(self.prompt_name, self.text_content_name))
+            logger.info(f"Text content started: {self.text_content_name}")
             await self.send_raw_event(S2sEvent.text_input(self.prompt_name, self.text_content_name))
+            logger.info(f"Text input sent for content: {self.text_content_name}")
             await self.send_raw_event(S2sEvent.content_end(self.prompt_name, self.text_content_name))
+            logger.info(f"Text content ended: {self.text_content_name}")
             await self.send_raw_event(S2sEvent.content_start_audio(self.prompt_name, self.audio_content_name))
+            logger.info(f"Audio content started: {self.audio_content_name}")
 
             # Start listening for responses
             self.response_task = asyncio.create_task(self._process_responses())
@@ -252,7 +258,12 @@ class S2sSessionManager:
                 from datetime import datetime, timezone
                 result = datetime.now(timezone.utc).strftime('%A, %Y-%m-%d %H-%M-%S')
 
-            # MCP integration - location search                        
+            # Job interview questions integration
+            if toolName == "getinterviewquestion":
+                job_title = query_json.get("job_title", "")
+                result = await interviewer_agent.get_job_questions(job_title)
+            
+            # MCP integration - location search
             if toolName == "getlocationtool":
                 if self.mcp_loc_client:
                     result = await self.mcp_loc_client.call_tool(content)
