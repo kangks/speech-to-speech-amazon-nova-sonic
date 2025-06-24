@@ -5,7 +5,7 @@ import { NetworkStack } from './network-stack';
 import { WebappStack } from './webapp-stack';
 import { ApiStack } from './api-stack';
 import { ApiEc2Stack } from './api-ec2-stack';
-import { DynamoDbStack } from './dynamodb-stack';
+// import { DynamoDbStack } from './dynamodb-stack';
 import { DnsHelper, DnsConfig } from './dns-config';
 
 /**
@@ -43,24 +43,6 @@ export class CdkStack extends cdk.Stack {
       ...props,
     });
 
-    // Create the DynamoDB stack
-    const dynamoDbStack = new DynamoDbStack(scope, 'NovaSonicDynamoDbStack', {
-      stackName: 'nova-sonic-dynamodb',
-      ...props,
-    });
-    
-    // Import the RestaurantBooking table if it exists
-    let restaurantBookingTable: dynamodb.ITable | undefined;
-    try {
-      restaurantBookingTable = dynamodb.Table.fromTableName(
-        this,
-        'ImportedRestaurantBookingTable',
-        'RestaurantBooking'
-      );
-    } catch (error) {
-      console.log('RestaurantBooking table not found, continuing without it');
-    }
-
     // Create DNS helper if DNS configuration is provided
     let dnsHelper: DnsHelper | undefined;
     if (props?.dnsConfig) {
@@ -79,7 +61,6 @@ export class CdkStack extends cdk.Stack {
         vpc: networkStack.vpc,
         dnsHelper: dnsHelper,
         restaurantBookingApiUrl: props?.dnsConfig?.restaurantBookingApiUrl || "",
-        dynamoDbTable: dynamoDbStack.conversationTable,
         ...props,
       });
       
@@ -91,7 +72,6 @@ export class CdkStack extends cdk.Stack {
         vpc: networkStack.vpc,
         dnsHelper: dnsHelper,
         restaurantBookingApiUrl: props?.dnsConfig?.restaurantBookingApiUrl || "",
-        dynamoDbTable: dynamoDbStack.conversationTable,
         NOVA_AWS_ACCESS_KEY_ID: props?.dnsConfig?.NOVA_AWS_ACCESS_KEY_ID || "",
         NOVA_AWS_SECRET_ACCESS_KEY: props?.dnsConfig?.NOVA_AWS_SECRET_ACCESS_KEY || "",
         ...props,
@@ -126,14 +106,14 @@ export class CdkStack extends cdk.Stack {
     if (apiStack) {
       // For ECS deployment
       apiStack.addDependency(networkStack);
-      apiStack.addDependency(dynamoDbStack);
+      // apiStack.addDependency(dynamoDbStack);
       
       // The webapp stack depends on the API stack
       webappStack.node.addDependency(apiStack);
     } else if (apiEc2Stack) {
       // For EC2 direct deployment
       apiEc2Stack.addDependency(networkStack);
-      apiEc2Stack.addDependency(dynamoDbStack);
+      // apiEc2Stack.addDependency(dynamoDbStack);
       
       // The webapp stack depends on the API stack
       webappStack.node.addDependency(apiEc2Stack);

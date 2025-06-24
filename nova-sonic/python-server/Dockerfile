@@ -9,7 +9,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     HOST=0.0.0.0 \
     WS_PORT=8081 \
-    HEALTH_PORT=8080 \
     LOGLEVEL=INFO
 
 # Install system dependencies
@@ -27,11 +26,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose ports
-EXPOSE 8081
+EXPOSE 8000
 EXPOSE 8080
 
-RUN mkdir -p /tmp/log/
+RUN mkdir -p /tmp
 
 # Command to run the application
 CMD ["python", "server.py"]

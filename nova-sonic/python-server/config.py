@@ -10,7 +10,7 @@ class Config:
     
     # Server configuration
     HOST = os.getenv("HOST", "0.0.0.0")  # Default to 0.0.0.0 for containerization
-    WS_PORT = int(os.getenv("WS_PORT", "8081"))
+    WS_PORT = int(os.getenv("WS_PORT", "8000"))
     HEALTH_PORT = int(os.getenv("HEALTH_PORT", "8080")) if os.getenv("HEALTH_PORT") else None
     
     # Debug and logging

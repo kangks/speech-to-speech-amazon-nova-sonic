@@ -62,7 +62,7 @@ export class WebappStack extends cdk.Stack {
 
     // Add container to the task definition
     const container = taskDefinition.addContainer('WebappContainer', {
-      image: ecs.ContainerImage.fromAsset('../nova-sonic/webapp',{
+      image: ecs.ContainerImage.fromAsset('../nova-sonic/vite-client',{
         platform: cdk.aws_ecr_assets.Platform.LINUX_ARM64,
       }),
       logging: ecs.LogDrivers.awsLogs({

@@ -10,7 +10,7 @@ const app = new cdk.App();
 // Get the deployment type from context or environment variable
 const apiDeploymentType = app.node.tryGetContext('apiDeploymentType') ||
                          process.env.API_DEPLOYMENT_TYPE ||
-                         ApiDeploymentType.EC2_DIRECT;
+                         ApiDeploymentType.ECS;
 
 // Define environment
 const env = {

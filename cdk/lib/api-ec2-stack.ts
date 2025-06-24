@@ -18,7 +18,7 @@ interface ApiEc2StackProps extends cdk.StackProps {
   webappLoadBalancerDns?: string;
   dnsHelper?: DnsHelper;
   novaAwsRegion?: string; // AWS region for Nova Sonic
-  dynamoDbTable: dynamodb.Table; // DynamoDB table for conversation history
+  // dynamoDbTable: dynamodb.Table; // DynamoDB table for conversation history
   /**
    * URL for the restaurant booking API
    */
@@ -40,7 +40,7 @@ export class ApiEc2Stack extends cdk.Stack {
     super(scope, id, props);
 
     // Use the provided DynamoDB table
-    this.table = props.dynamoDbTable;
+    // this.table = props.dynamoDbTable;
 
     this.novaAwsRegion = props.novaAwsRegion || 'us-east-1';
 
@@ -127,7 +127,7 @@ export class ApiEc2Stack extends cdk.Stack {
     });
 
     // Grant permissions to the DynamoDB table
-    this.table.grantReadWriteData(ec2Role);
+    // this.table.grantReadWriteData(ec2Role);
 
     // Create user data script for Docker installation and container execution
     const userData = ec2.UserData.forLinux();
@@ -138,7 +138,7 @@ export class ApiEc2Stack extends cdk.Stack {
     
     // // Create a Docker image asset from the API Dockerfile
     const dockerImageAsset = new ecr_assets.DockerImageAsset(this, 'ApiDockerImage', {
-      directory: path.join(__dirname, '../../nova-sonic/api'),
+      directory: path.join(__dirname, '../../nova-sonic/python-server'),
       platform: ecr_assets.Platform.LINUX_AMD64,
     });
 
@@ -159,7 +159,6 @@ export class ApiEc2Stack extends cdk.Stack {
       'docker run -d --restart always --network=host \\',
       '  -v /var/log/nova-sonic:/var/log/nova-sonic \\',
       `  -e AWS_REGION=${this.region} \\`,
-      `  -e DYNAMODB_TABLE_NAME=${this.table.tableName} \\`,
       '  -e STUN_SERVER=stun:stun.l.google.com:19302 \\',
       `  -e RESTAURANT_BOOKING_API_URL=${props.restaurantBookingApiUrl || 'https://lcp8gupvck.execute-api.us-east-1.amazonaws.com/demo'} \\`,
       '  -e HOST=0.0.0.0 \\',

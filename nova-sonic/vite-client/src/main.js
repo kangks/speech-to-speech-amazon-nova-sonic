@@ -151,7 +151,7 @@ function sendEvent(event) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(event));
     event.timestamp = Date.now();
-    console.log("Sent event:", event);
+    // console.log("Sent event:", event);
   } else {
     console.warn("Cannot send event: WebSocket not connected");
   }
