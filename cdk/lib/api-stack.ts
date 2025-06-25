@@ -92,19 +92,26 @@ export class ApiStack extends cdk.Stack {
     let taskDefinition: ecs.TaskDefinition;
     let container: ecs.ContainerDefinition;
 
+    // // Create a task definition for Fargate
+    // taskDefinition = new ecs.FargateTaskDefinition(this, 'ApiTaskDef', {
+    //   executionRole: executionRole,
+    //   taskRole: taskRole,
+    //   cpu: 2048, // 2 vCPU
+    //   memoryLimitMiB: 4096, // 4 GB
+    // });
     // Create a task definition for Fargate
-    taskDefinition = new ecs.FargateTaskDefinition(this, 'ApiTaskDef', {
+    taskDefinition = new ecs.Ec2TaskDefinition(this, 'ApiTaskDef', {
       executionRole: executionRole,
       taskRole: taskRole,
-      cpu: 2048, // 2 vCPU
-      memoryLimitMiB: 4096, // 4 GB
+      networkMode: ecs.NetworkMode.HOST
     });
     
     // Add container to the Fargate task definition
     container = taskDefinition.addContainer('ApiContainer', {
-      image: ecs.ContainerImage.fromAsset('../nova-sonic/python-server', {
+      image: ecs.ContainerImage.fromAsset('../websocket/python-server', {
         platform: cdk.aws_ecr_assets.Platform.LINUX_AMD64,
       }),
+      memoryLimitMiB: 512,
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'api',
         logGroup: logGroup,
@@ -117,7 +124,8 @@ export class ApiStack extends cdk.Stack {
         'LOG_LEVEL': 'INFO',
         'NOVA_AWS_REGION': this.novaAwsRegion,
         'AWS_ACCESS_KEY_ID': '#{AWS_ACCESS_KEY_ID}',
-        'AWS_SECRET_ACCESS_KEY': '#{AWS_SECRET_ACCESS_KEY}'
+        'AWS_SECRET_ACCESS_KEY': '#{AWS_SECRET_ACCESS_KEY}',
+        'LOG_FILE': '/tmp/nova-sonic.log'
       },
       portMappings: [
         {
@@ -172,6 +180,7 @@ export class ApiStack extends cdk.Stack {
       securityGroup: apiLbSecurityGroup,
       // Enable deletion protection in production
       deletionProtection: false,
+      idleTimeout: cdk.Duration.seconds(3600),// Increased from 30s to 60s for WebSocket connections
     });
     
     // Create S3 bucket for ALB access logs
@@ -193,7 +202,7 @@ export class ApiStack extends cdk.Stack {
       vpc: props.vpc,
       port: 8000,
       protocol: elbv2.ApplicationProtocol.HTTP,
-      targetType: elbv2.TargetType.IP,
+      targetType: elbv2.TargetType.INSTANCE,
       healthCheck: {
         path: '/health',
         port: '8080',                 // Health check now runs on the same port as WebSocket
@@ -205,8 +214,8 @@ export class ApiStack extends cdk.Stack {
       },
       // Enable stickiness for session persistence
       stickinessCookieDuration: cdk.Duration.days(1),
-      // Deregistration delay (draining)
-      deregistrationDelay: cdk.Duration.seconds(30),
+      // Deregistration delay (draining) - increased to allow WebSocket connections to complete
+      deregistrationDelay: cdk.Duration.seconds(120),
     });
 
     // Add HTTP listener to the ALB for API traffic
@@ -257,14 +266,26 @@ export class ApiStack extends cdk.Stack {
       });
     }
 
-    // Create the Fargate service
-    this.service = new ecs.FargateService(this, 'ApiService', {
+    // // Create the Fargate service
+    // this.service = new ecs.FargateService(this, 'ApiService', {
+    //   cluster: this.cluster,
+    //   taskDefinition,
+    //   desiredCount: 2,
+    //   securityGroups: [apiSecurityGroup],
+    //   vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+    //   assignPublicIp: true,
+    //   circuitBreaker: { rollback: true },  // Enable rollback for circuit breaker
+    //   healthCheckGracePeriod: cdk.Duration.seconds(120),  // Add grace period for health checks
+    // });
+
+    // Create the Ec2 service
+    this.service = new ecs.Ec2Service(this, 'ApiService', {
       cluster: this.cluster,
       taskDefinition,
-      desiredCount: 2,
-      securityGroups: [apiSecurityGroup],
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      assignPublicIp: true,
+      desiredCount: 1,
+      // securityGroups: [apiSecurityGroup],
+      // vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      // assignPublicIp: true,
       circuitBreaker: { rollback: true },  // Enable rollback for circuit breaker
       healthCheckGracePeriod: cdk.Duration.seconds(120),  // Add grace period for health checks
     });

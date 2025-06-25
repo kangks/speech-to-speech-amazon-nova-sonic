@@ -3,6 +3,7 @@ import json
 import base64
 import uuid
 import logging
+import concurrent.futures
 from s2s_events import S2sEvent
 import time
 from aws_sdk_bedrock_runtime.client import BedrockRuntimeClient, InvokeModelWithBidirectionalStreamOperationInput
@@ -134,9 +135,12 @@ class S2sSessionManager:
                 else:
                     raise  # Re-raise if it's not an AwsCrtError
 
-            # Close session
+            # Handle session end event specially
             if "sessionEnd" in event_data["event"]:
-                self.close()
+                logger.info("Session end event detected, will close session after sending event")
+                # Don't call close() directly here, as it might interrupt the sending of this event
+                # Instead, mark the session as ending, and let the caller handle the closing
+                self.is_active = False
             
         except Exception as e:
             logger.error(f"Error sending event: {str(e)}")
@@ -207,8 +211,14 @@ class S2sSessionManager:
         """Process incoming responses from Bedrock."""
         while self.is_active:
             try:            
-                output = await self.stream.await_output()
-                result = await output[1].receive()
+                try:
+                    output = await self.stream.await_output()
+                    result = await output[1].receive()
+                except concurrent.futures._base.InvalidStateError as e:
+                    logger.warning(f"Future in invalid state (likely cancelled): {str(e)}")
+                    # If we get this error, the stream is likely closed or being closed
+                    # Break out of the loop to avoid further errors
+                    break
                 
                 if result.value and result.value.bytes_:
                     response_data = result.value.bytes_.decode('utf-8')
@@ -259,19 +269,28 @@ class S2sSessionManager:
 
 
             except json.JSONDecodeError as ex:
-                print(ex)
+                logger.warning(f"JSON decode error: {ex}")
                 await self.output_queue.put({"raw_data": response_data})
             except StopAsyncIteration as ex:
                 # Stream has ended
-                print(ex)
+                logger.info(f"Stream has ended: {ex}")
+                break
+            except asyncio.CancelledError:
+                logger.info("Response processing task cancelled")
+                break
             except Exception as e:
                 # Handle ValidationException properly
                 if "ValidationException" in str(e):
                     error_message = str(e)
-                    print(f"Validation error: {error_message}")
+                    logger.warning(f"Validation error: {error_message}")
+                elif "AwsCrtError" in str(e):
+                    logger.error(f"AWS CRT Error in response processing: {str(e)}")
+                    # Try to continue for a bit, but if we get too many errors, break
+                    if not self.is_active:
+                        break
                 else:
-                    print(f"Error receiving response: {e}")
-                break
+                    logger.error(f"Error receiving response: {e}")
+                    break
 
         self.is_active = False
         self.close()
@@ -380,22 +399,42 @@ class S2sSessionManager:
     
     async def close(self):
         """Close the stream properly."""
+        logger.info("Closing S2sSessionManager")
         if not self.is_active:
+            logger.debug("Session already inactive, nothing to close")
             return
             
+        # Mark as inactive first to prevent new operations
         self.is_active = False
         
+        # Close the stream with proper error handling
         if self.stream:
             try:
+                logger.debug("Closing Bedrock stream input")
                 await self.stream.input_stream.close()
             except Exception as e:
-                logger.warning(f"Error closing stream: {str(e)}")
+                logger.warning(f"Error closing stream input: {str(e)}")
+                
+            # Clear the stream reference to prevent further usage
+            self.stream = None
         
+        # Cancel and wait for the response task with proper error handling
         if self.response_task and not self.response_task.done():
+            logger.debug("Cancelling response task")
             self.response_task.cancel()
             try:
-                await self.response_task
+                # Use a timeout to avoid hanging if the task doesn't complete
+                await asyncio.wait_for(asyncio.shield(self.response_task), timeout=2.0)
+            except asyncio.TimeoutError:
+                logger.warning("Timeout waiting for response task to cancel")
             except asyncio.CancelledError:
-                pass
+                logger.debug("Response task cancelled successfully")
+            except concurrent.futures._base.InvalidStateError:
+                logger.debug("Response task future was already in invalid state (likely cancelled)")
+            except Exception as e:
+                logger.warning(f"Error while cancelling response task: {str(e)}")
+            
+            # Clear the task reference
+            self.response_task = None
         
-        
+        logger.info("S2sSessionManager closed successfully")

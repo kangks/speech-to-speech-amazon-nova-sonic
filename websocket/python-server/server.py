@@ -146,9 +146,23 @@ async def websocket_handler(websocket):
                             stream_manager.add_audio_chunk(prompt_name, content_name, audio_base64)
                         elif event_type == 'sessionEnd':
                             logger.info(f"Received event: {event_type}")
-                            # Handle session end event
-                            await stream_manager.send_raw_event(data)
-                            logger.info("Session end event received, closing connection")
+                            try:
+                                # Handle session end event
+                                await stream_manager.send_raw_event(data)
+                                logger.info("Session end event received, closing connection")
+                                
+                                # Gracefully close the stream manager before closing the WebSocket
+                                await stream_manager.close()
+                                
+                                # Set stream_manager to None to prevent double cleanup in finally block
+                                stream_manager = None
+                                
+                                # Break out of the message loop to close the WebSocket connection
+                                break
+                            except Exception as e:
+                                logger.warning(f"Error during session end handling: {str(e)}")
+                                # Continue to finally block for cleanup
+                                break
                         elif event_type == 'contentEnd':
                             logger.info(f"Received event: {event_type}")
                             # Handle session end event
