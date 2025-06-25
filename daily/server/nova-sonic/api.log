@@ -1,0 +1,585 @@
+2025-06-25 13:44:06.053 | INFO     | __main__:<module>:37 - Logging to file: nova-sonic/api.log
+2025-06-25 13:44:06.054 | INFO     | __main__:main:230 - Starting Nova Sonic API on localhost:8000
+2025-06-25 13:45:39.591 | INFO     | bot:run_bot:26 - Starting Nova Sonic bot
+2025-06-25 13:45:39.592 | INFO     | bot:run_bot:30 - New conversation started: 1cb27052-a394-498d-96f9-b0937f30db32
+2025-06-25 13:45:39.707 | INFO     | pipecat.services.aws_nova_sonic.aws:_start_connecting:302 - Connecting...
+2025-06-25 13:45:39.799 | ERROR    | pipecat.processors.frame_processor:_check_ready:330 - ParallelPipelineSource#0 not properly initialized, missing super().process_frame(frame, direction)?
+2025-06-25 13:45:40.073 | ERROR    | pipecat.services.aws_nova_sonic.aws:_start_connecting:327 - AWSNovaSonicLLMService#0 initialization error: 'NoneType' object has no attribute 'encode'
+2025-06-25 13:45:40.075 | INFO     | pipecat.transports.network.small_webrtc:connect:308 - Connecting to Small WebRTC
+2025-06-25 13:45:40.077 | INFO     | bot:on_client_connected:156 - Client connected
+2025-06-25 13:45:40.077 | INFO     | bot:on_client_connected:159 - Updated transport in transcript handler
+2025-06-25 13:45:40.077 | INFO     | bot:on_client_connected:167 - Sending test transcript messages
+2025-06-25 13:45:40.078 | INFO     | pipecat.audio.vad.vad_analyzer:set_params:74 - Setting VAD params to: confidence=0.7 start_secs=0.2 stop_secs=0.8 min_volume=0.6
+2025-06-25 13:45:40.089 | INFO     | __main__:offer:100 - Reusing existing connection for pc_id: SmallWebRTCConnection#0
+2025-06-25 13:46:01.290 | WARNING  | pipecat.transports.network.small_webrtc:read_audio_frame:258 - Received an unexpected media stream error while reading the audio.
+2025-06-25 13:46:01.298 | INFO     | __main__:handle_disconnected:111 - Discarding peer connection for pc_id: SmallWebRTCConnection#0
+2025-06-25 13:46:01.298 | INFO     | bot:on_client_closed:177 - Client closed connection
+2025-06-25 13:46:01.301 | INFO     | pipecat.transports.network.small_webrtc:disconnect:313 - Disconnecting to Small WebRTC
+2025-06-25 13:46:01.302 | INFO     | bot:on_client_disconnected:173 - Client disconnected
+2025-06-25 13:46:01.303 | INFO     | pipecat.services.aws_nova_sonic.aws:_disconnect:382 - Disconnecting...
+2025-06-25 13:46:02.303 | INFO     | pipecat.services.aws_nova_sonic.aws:_disconnect:420 - Finished disconnecting
+2025-06-25 13:47:43.536 | INFO     | __main__:<module>:37 - Logging to file: nova-sonic/api.log
+2025-06-25 13:47:43.537 | INFO     | __main__:main:230 - Starting Nova Sonic API on localhost:8000
+2025-06-25 13:48:33.749 | INFO     | bot:run_bot:26 - Starting Nova Sonic bot
+2025-06-25 13:48:33.749 | INFO     | bot:run_bot:30 - New conversation started: a46c1551-5253-4ee9-be6f-fc9d57207791
+2025-06-25 13:48:33.819 | INFO     | pipecat.services.aws_nova_sonic.aws:_start_connecting:302 - Connecting...
+2025-06-25 13:48:33.857 | ERROR    | pipecat.processors.frame_processor:_check_ready:330 - ParallelPipelineSource#0 not properly initialized, missing super().process_frame(frame, direction)?
+2025-06-25 13:48:34.075 | ERROR    | pipecat.services.aws_nova_sonic.aws:_start_connecting:327 - AWSNovaSonicLLMService#0 initialization error: 'NoneType' object has no attribute 'encode'
+2025-06-25 13:48:34.077 | INFO     | pipecat.transports.network.small_webrtc:connect:308 - Connecting to Small WebRTC
+2025-06-25 13:48:34.077 | INFO     | bot:on_client_connected:156 - Client connected
+2025-06-25 13:48:34.077 | INFO     | bot:on_client_connected:159 - Updated transport in transcript handler
+2025-06-25 13:48:34.078 | INFO     | bot:on_client_connected:167 - Sending test transcript messages
+2025-06-25 13:48:34.078 | INFO     | pipecat.audio.vad.vad_analyzer:set_params:74 - Setting VAD params to: confidence=0.7 start_secs=0.2 stop_secs=0.8 min_volume=0.6
+2025-06-25 13:48:34.084 | INFO     | __main__:offer:100 - Reusing existing connection for pc_id: SmallWebRTCConnection#0
+2025-06-25 13:50:13.859 | INFO     | __main__:<module>:37 - Logging to file: nova-sonic/api.log
+2025-06-25 13:50:13.861 | INFO     | __main__:main:230 - Starting Nova Sonic API on localhost:8000
+2025-06-25 13:50:18.714 | INFO     | bot:run_bot:26 - Starting Nova Sonic bot
+2025-06-25 13:50:18.714 | INFO     | bot:run_bot:30 - New conversation started: 18a28d17-b0ab-4262-ae4d-cddadd33dc5d
+2025-06-25 13:50:18.783 | INFO     | pipecat.services.aws_nova_sonic.aws:_start_connecting:302 - Connecting...
+2025-06-25 13:50:18.787 | INFO     | pipecat.transports.network.small_webrtc:connect:308 - Connecting to Small WebRTC
+2025-06-25 13:50:18.788 | INFO     | pipecat.audio.vad.vad_analyzer:set_params:74 - Setting VAD params to: confidence=0.7 start_secs=0.2 stop_secs=0.8 min_volume=0.6
+2025-06-25 13:50:18.788 | INFO     | pipecat.transports.network.small_webrtc:connect:308 - Connecting to Small WebRTC
+2025-06-25 13:50:18.815 | INFO     | bot:on_client_connected:156 - Client connected
+2025-06-25 13:50:18.816 | INFO     | bot:on_client_connected:159 - Updated transport in transcript handler
+2025-06-25 13:50:18.816 | INFO     | bot:on_client_connected:167 - Sending test transcript messages
+2025-06-25 13:50:18.817 | INFO     | pipecat.services.aws_nova_sonic.aws:_finish_connecting_if_context_available:336 - Finishing connecting (setting up session)...
+2025-06-25 13:50:18.818 | INFO     | pipecat.services.aws_nova_sonic.aws:_finish_connecting_if_context_available:373 - Finished connecting
+2025-06-25 13:50:20.061 | ERROR    | pipecat.services.aws_nova_sonic.aws:_receive_task_handler:729 - AWSNovaSonicLLMService#0 error processing responses: IncompleteSignatureException: Credential must have exactly 5 slash-delimited elements, e.g. keyid/date/region/service/term, got 'BqDQmIJfAdNheiTo4r4+mF8uvQa4nTf/Ev9Wrzt1/20250625/us-east-1/bedrock/aws4_request'
+2025-06-25 13:50:20.061 | INFO     | pipecat.services.aws_nova_sonic.aws:_disconnect:382 - Disconnecting...
+2025-06-25 13:50:20.074 | ERROR    | pipecat.processors.frame_processor:__internal_push_frame:322 - Uncaught exception in AWSNovaSonicUserContextAggregator#0: Attempted to write to closed stream.
+Traceback (most recent call last):
+
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/runpy.py", line 198, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+           │         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': <_frozen_importlib_external.SourceFileLoader objec...
+           │         └ <code object <module> at 0x1024552f0, file "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+           └ <function _run_code at 0x10245c360>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/runpy.py", line 88, in _run_code
+    exec(code, run_globals)
+         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': <_frozen_importlib_external.SourceFileLoader objec...
+         └ <code object <module> at 0x1024552f0, file "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/__main__.py", line 71, in <module>
+    cli.main()
+    │   └ <function main at 0x106f084a0>
+    └ <module 'debugpy.server.cli' from '/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 501, in main
+    run()
+    └ <function run_file at 0x106f08220>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 351, in run_file
+    runpy.run_path(target, run_name="__main__")
+    │     │        └ 'app.py'
+    │     └ <function run_path at 0x1061065c0>
+    └ <module '_pydevd_bundle.pydevd_runpy' from '/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+    return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+           │                │     │             │                  │                     └ 'app.py'
+           │                │     │             │                  └ ''
+           │                │     │             └ '__main__'
+           │                │     └ None
+           │                └ <code object <module> at 0x103014400, file "app.py", line 1>
+           └ <function _run_module_code at 0x106106200>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+    _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+    │         │     │            │             │         │         │         └ 'app.py'
+    │         │     │            │             │         │         └ ''
+    │         │     │            │             │         └ None
+    │         │     │            │             └ '__main__'
+    │         │     │            └ None
+    │         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': None, '__spec__': None, '__file__': 'app.py', '__c...
+    │         └ <code object <module> at 0x103014400, file "app.py", line 1>
+    └ <function _run_code at 0x106105da0>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+    exec(code, run_globals)
+         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': None, '__spec__': None, '__file__': 'app.py', '__c...
+         └ <code object <module> at 0x103014400, file "app.py", line 1>
+
+  File "app.py", line 235, in <module>
+    main()
+    └ <function main at 0x16be1ed40>
+
+  File "app.py", line 231, in main
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 8000
+    │       │   │         │    │          └ Namespace(host='localhost', port=8000, verbose=0)
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(host='localhost', port=8000, verbose=0)
+    │       │   └ <fastapi.applications.FastAPI object at 0x11b1e3380>
+    │       └ <function run at 0x119cdd260>
+    └ <module 'uvicorn' from '/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/pyt...
+
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x119cdd440>
+    └ <uvicorn.server.Server object at 0x16be39010>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/uvicorn/server.py", line 66, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x119cdd4e0>
+           │       │   └ <uvicorn.server.Server object at 0x16be39010>
+           │       └ <function run at 0x119030540>
+           └ <module 'asyncio' from '/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/__init__.py'>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16be40ba0>
+           │      └ <function Runner.run at 0x1190fe840>
+           └ <asyncio.runners.Runner object at 0x16be38440>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/richardkang/Documents/github/speech-to-speech-amazon-nova-...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16be78e10>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x16be38440>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/utils/asyncio.py", line 107, in run_coroutine
+    await coroutine
+          └ <coroutine object BaseInputTransport._audio_task_handler at 0x16c971210>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/transports/base_input.py", line 314, in _audio_task_handler
+    await self.push_frame(frame)
+          │    │          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function FrameProcessor.push_frame at 0x1606cc7c0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 254, in push_frame
+    await self.__internal_push_frame(frame, direction)
+          │                          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │                          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 308, in __internal_push_frame
+    await self._next.queue_frame(frame, direction)
+          │    │     │           │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │     │           └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    │     └ <function FrameProcessor.queue_frame at 0x1606cc4a0>
+          │    └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 215, in queue_frame
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicUserContextAggregator.process_frame at 0x1625e3740>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/context.py", line 165, in process_frame
+    await super().process_frame(frame, direction)
+                                │      └ <FrameDirection.DOWNSTREAM: 1>
+                                └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/aggregators/llm_response.py", line 321, in process_frame
+    await self.push_frame(frame, direction)
+          │    │          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function FrameProcessor.push_frame at 0x1606cc7c0>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 254, in push_frame
+    await self.__internal_push_frame(frame, direction)
+          │                          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │                          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+> File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 308, in __internal_push_frame
+    await self._next.queue_frame(frame, direction)
+          │    │     │           │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │     │           └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    │     └ <function FrameProcessor.queue_frame at 0x1606cc4a0>
+          │    └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 215, in queue_frame
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService.process_frame at 0x162b7f1a0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 228, in process_frame
+    await self._handle_input_audio_frame(frame)
+          │    │                         └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService._handle_input_audio_frame at 0x162b7f2e0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 250, in _handle_input_audio_frame
+    await self._send_user_audio_event(frame.audio)
+          │    │                      │     └ b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x83\x00\x85\x00\xc1\x00\xd...
+          │    │                      └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService._send_user_audio_event at 0x162b7f9c0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 591, in _send_user_audio_event
+    await self._send_client_event(audio_event)
+          │    │                  └ '\n        {\n            "event": {\n                "audioInput": {\n                    "promptName": "ee6fda6a-1b0c-4ded-...
+          │    └ <function AWSNovaSonicLLMService._send_client_event at 0x162b7fba0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 677, in _send_client_event
+    await self._stream.input_stream.send(event)
+          │    │       │            │    └ InvokeModelWithBidirectionalStreamInputChunk(value=BidirectionalInputPayloadPart())
+          │    │       │            └ <function AWSEventPublisher.send at 0x162726160>
+          │    │       └ <smithy_aws_event_stream.aio.AWSEventPublisher object at 0x16c955be0>
+          │    └ <smithy_core.aio.eventstream.DuplexEventStream object at 0x16c955e80>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/smithy_aws_event_stream/aio/__init__.py", line 51, in send
+    raise OSError("Attempted to write to closed stream.")
+
+OSError: Attempted to write to closed stream.
+2025-06-25 13:50:20.082 | ERROR    | pipecat.processors.frame_processor:__internal_push_frame:322 - Uncaught exception in SmallWebRTCInputTransport#0: Attempted to write to closed stream.
+Traceback (most recent call last):
+
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/runpy.py", line 198, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+           │         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': <_frozen_importlib_external.SourceFileLoader objec...
+           │         └ <code object <module> at 0x1024552f0, file "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+           └ <function _run_code at 0x10245c360>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/runpy.py", line 88, in _run_code
+    exec(code, run_globals)
+         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': <_frozen_importlib_external.SourceFileLoader objec...
+         └ <code object <module> at 0x1024552f0, file "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/__main__.py", line 71, in <module>
+    cli.main()
+    │   └ <function main at 0x106f084a0>
+    └ <module 'debugpy.server.cli' from '/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 501, in main
+    run()
+    └ <function run_file at 0x106f08220>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 351, in run_file
+    runpy.run_path(target, run_name="__main__")
+    │     │        └ 'app.py'
+    │     └ <function run_path at 0x1061065c0>
+    └ <module '_pydevd_bundle.pydevd_runpy' from '/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+    return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+           │                │     │             │                  │                     └ 'app.py'
+           │                │     │             │                  └ ''
+           │                │     │             └ '__main__'
+           │                │     └ None
+           │                └ <code object <module> at 0x103014400, file "app.py", line 1>
+           └ <function _run_module_code at 0x106106200>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+    _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+    │         │     │            │             │         │         │         └ 'app.py'
+    │         │     │            │             │         │         └ ''
+    │         │     │            │             │         └ None
+    │         │     │            │             └ '__main__'
+    │         │     │            └ None
+    │         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': None, '__spec__': None, '__file__': 'app.py', '__c...
+    │         └ <code object <module> at 0x103014400, file "app.py", line 1>
+    └ <function _run_code at 0x106105da0>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+    exec(code, run_globals)
+         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': None, '__spec__': None, '__file__': 'app.py', '__c...
+         └ <code object <module> at 0x103014400, file "app.py", line 1>
+
+  File "app.py", line 235, in <module>
+    main()
+    └ <function main at 0x16be1ed40>
+
+  File "app.py", line 231, in main
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 8000
+    │       │   │         │    │          └ Namespace(host='localhost', port=8000, verbose=0)
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(host='localhost', port=8000, verbose=0)
+    │       │   └ <fastapi.applications.FastAPI object at 0x11b1e3380>
+    │       └ <function run at 0x119cdd260>
+    └ <module 'uvicorn' from '/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/pyt...
+
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x119cdd440>
+    └ <uvicorn.server.Server object at 0x16be39010>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/uvicorn/server.py", line 66, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x119cdd4e0>
+           │       │   └ <uvicorn.server.Server object at 0x16be39010>
+           │       └ <function run at 0x119030540>
+           └ <module 'asyncio' from '/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/__init__.py'>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16be40ba0>
+           │      └ <function Runner.run at 0x1190fe840>
+           └ <asyncio.runners.Runner object at 0x16be38440>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/richardkang/Documents/github/speech-to-speech-amazon-nova-...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16be78e10>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x16be38440>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/utils/asyncio.py", line 107, in run_coroutine
+    await coroutine
+          └ <coroutine object BaseInputTransport._audio_task_handler at 0x16c971210>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/transports/base_input.py", line 314, in _audio_task_handler
+    await self.push_frame(frame)
+          │    │          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function FrameProcessor.push_frame at 0x1606cc7c0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 254, in push_frame
+    await self.__internal_push_frame(frame, direction)
+          │                          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │                          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+> File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 308, in __internal_push_frame
+    await self._next.queue_frame(frame, direction)
+          │    │     │           │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │     │           └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    │     └ <function FrameProcessor.queue_frame at 0x1606cc4a0>
+          │    └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 215, in queue_frame
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicUserContextAggregator.process_frame at 0x1625e3740>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/context.py", line 165, in process_frame
+    await super().process_frame(frame, direction)
+                                │      └ <FrameDirection.DOWNSTREAM: 1>
+                                └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/aggregators/llm_response.py", line 321, in process_frame
+    await self.push_frame(frame, direction)
+          │    │          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function FrameProcessor.push_frame at 0x1606cc7c0>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 254, in push_frame
+    await self.__internal_push_frame(frame, direction)
+          │                          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │                          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 308, in __internal_push_frame
+    await self._next.queue_frame(frame, direction)
+          │    │     │           │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │     │           └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    │     └ <function FrameProcessor.queue_frame at 0x1606cc4a0>
+          │    └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 215, in queue_frame
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService.process_frame at 0x162b7f1a0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 228, in process_frame
+    await self._handle_input_audio_frame(frame)
+          │    │                         └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService._handle_input_audio_frame at 0x162b7f2e0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 250, in _handle_input_audio_frame
+    await self._send_user_audio_event(frame.audio)
+          │    │                      │     └ b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x83\x00\x85\x00\xc1\x00\xd...
+          │    │                      └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService._send_user_audio_event at 0x162b7f9c0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 591, in _send_user_audio_event
+    await self._send_client_event(audio_event)
+          │    │                  └ '\n        {\n            "event": {\n                "audioInput": {\n                    "promptName": "ee6fda6a-1b0c-4ded-...
+          │    └ <function AWSNovaSonicLLMService._send_client_event at 0x162b7fba0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 677, in _send_client_event
+    await self._stream.input_stream.send(event)
+          │    │       │            │    └ InvokeModelWithBidirectionalStreamInputChunk(value=BidirectionalInputPayloadPart())
+          │    │       │            └ <function AWSEventPublisher.send at 0x162726160>
+          │    │       └ <smithy_aws_event_stream.aio.AWSEventPublisher object at 0x16c955be0>
+          │    └ <smithy_core.aio.eventstream.DuplexEventStream object at 0x16c955e80>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/smithy_aws_event_stream/aio/__init__.py", line 51, in send
+    raise OSError("Attempted to write to closed stream.")
+
+OSError: Attempted to write to closed stream.
+2025-06-25 13:50:20.085 | ERROR    | pipecat.utils.asyncio:run_coroutine:113 - SmallWebRTCInputTransport#0::_audio_task_handler: unexpected exception: Attempted to write to closed stream.
+Traceback (most recent call last):
+
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/runpy.py", line 198, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+           │         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': <_frozen_importlib_external.SourceFileLoader objec...
+           │         └ <code object <module> at 0x1024552f0, file "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+           └ <function _run_code at 0x10245c360>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/runpy.py", line 88, in _run_code
+    exec(code, run_globals)
+         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': <_frozen_importlib_external.SourceFileLoader objec...
+         └ <code object <module> at 0x1024552f0, file "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/__main__.py", line 71, in <module>
+    cli.main()
+    │   └ <function main at 0x106f084a0>
+    └ <module 'debugpy.server.cli' from '/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 501, in main
+    run()
+    └ <function run_file at 0x106f08220>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/adapter/../../debugpy/launcher/../../debugpy/../debugpy/server/cli.py", line 351, in run_file
+    runpy.run_path(target, run_name="__main__")
+    │     │        └ 'app.py'
+    │     └ <function run_path at 0x1061065c0>
+    └ <module '_pydevd_bundle.pydevd_runpy' from '/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bun...
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 310, in run_path
+    return _run_module_code(code, init_globals, run_name, pkg_name=pkg_name, script_name=fname)
+           │                │     │             │                  │                     └ 'app.py'
+           │                │     │             │                  └ ''
+           │                │     │             └ '__main__'
+           │                │     └ None
+           │                └ <code object <module> at 0x103014400, file "app.py", line 1>
+           └ <function _run_module_code at 0x106106200>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 127, in _run_module_code
+    _run_code(code, mod_globals, init_globals, mod_name, mod_spec, pkg_name, script_name)
+    │         │     │            │             │         │         │         └ 'app.py'
+    │         │     │            │             │         │         └ ''
+    │         │     │            │             │         └ None
+    │         │     │            │             └ '__main__'
+    │         │     │            └ None
+    │         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': None, '__spec__': None, '__file__': 'app.py', '__c...
+    │         └ <code object <module> at 0x103014400, file "app.py", line 1>
+    └ <function _run_code at 0x106105da0>
+
+  File "/Users/richardkang/.vscode/extensions/ms-python.debugpy-2025.8.0-darwin-arm64/bundled/libs/debugpy/_vendored/pydevd/_pydevd_bundle/pydevd_runpy.py", line 118, in _run_code
+    exec(code, run_globals)
+         │     └ {'__name__': '__main__', '__doc__': None, '__package__': '', '__loader__': None, '__spec__': None, '__file__': 'app.py', '__c...
+         └ <code object <module> at 0x103014400, file "app.py", line 1>
+
+  File "app.py", line 235, in <module>
+    main()
+    └ <function main at 0x16be1ed40>
+
+  File "app.py", line 231, in main
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 8000
+    │       │   │         │    │          └ Namespace(host='localhost', port=8000, verbose=0)
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(host='localhost', port=8000, verbose=0)
+    │       │   └ <fastapi.applications.FastAPI object at 0x11b1e3380>
+    │       └ <function run at 0x119cdd260>
+    └ <module 'uvicorn' from '/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/pyt...
+
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x119cdd440>
+    └ <uvicorn.server.Server object at 0x16be39010>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/uvicorn/server.py", line 66, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x119cdd4e0>
+           │       │   └ <uvicorn.server.Server object at 0x16be39010>
+           │       └ <function run at 0x119030540>
+           └ <module 'asyncio' from '/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/__init__.py'>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16be40ba0>
+           │      └ <function Runner.run at 0x1190fe840>
+           └ <asyncio.runners.Runner object at 0x16be38440>
+  File "/Users/richardkang/.pyenv/versions/3.13.1/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/richardkang/Documents/github/speech-to-speech-amazon-nova-...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16be78e10>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x16be38440>
+> File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/utils/asyncio.py", line 107, in run_coroutine
+    await coroutine
+          └ <coroutine object BaseInputTransport._audio_task_handler at 0x16c971210>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/transports/base_input.py", line 314, in _audio_task_handler
+    await self.push_frame(frame)
+          │    │          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function FrameProcessor.push_frame at 0x1606cc7c0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 254, in push_frame
+    await self.__internal_push_frame(frame, direction)
+          │                          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │                          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 308, in __internal_push_frame
+    await self._next.queue_frame(frame, direction)
+          │    │     │           │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │     │           └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    │     └ <function FrameProcessor.queue_frame at 0x1606cc4a0>
+          │    └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCInputTransport object at 0x16c9352b0>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 215, in queue_frame
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicUserContextAggregator.process_frame at 0x1625e3740>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/context.py", line 165, in process_frame
+    await super().process_frame(frame, direction)
+                                │      └ <FrameDirection.DOWNSTREAM: 1>
+                                └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/aggregators/llm_response.py", line 321, in process_frame
+    await self.push_frame(frame, direction)
+          │    │          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function FrameProcessor.push_frame at 0x1606cc7c0>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 254, in push_frame
+    await self.__internal_push_frame(frame, direction)
+          │                          │      └ <FrameDirection.DOWNSTREAM: 1>
+          │                          └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 308, in __internal_push_frame
+    await self._next.queue_frame(frame, direction)
+          │    │     │           │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │     │           └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    │     └ <function FrameProcessor.queue_frame at 0x1606cc4a0>
+          │    └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+          └ <pipecat.services.aws_nova_sonic.context.AWSNovaSonicUserContextAggregator object at 0x16c934c20>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/processors/frame_processor.py", line 215, in queue_frame
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService.process_frame at 0x162b7f1a0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 228, in process_frame
+    await self._handle_input_audio_frame(frame)
+          │    │                         └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService._handle_input_audio_frame at 0x162b7f2e0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 250, in _handle_input_audio_frame
+    await self._send_user_audio_event(frame.audio)
+          │    │                      │     └ b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x83\x00\x85\x00\xc1\x00\xd...
+          │    │                      └ InputAudioRawFrame(audio=b"\x03\x01\xee\x00\xe0\x00\xea\x00\xde\x00\xd5\x00\xc9\x00\xe3\x00\x04\x01\x14\x01\xd9\x00\x9e\x00\x...
+          │    └ <function AWSNovaSonicLLMService._send_user_audio_event at 0x162b7f9c0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 591, in _send_user_audio_event
+    await self._send_client_event(audio_event)
+          │    │                  └ '\n        {\n            "event": {\n                "audioInput": {\n                    "promptName": "ee6fda6a-1b0c-4ded-...
+          │    └ <function AWSNovaSonicLLMService._send_client_event at 0x162b7fba0>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/pipecat/services/aws_nova_sonic/aws.py", line 677, in _send_client_event
+    await self._stream.input_stream.send(event)
+          │    │       │            │    └ InvokeModelWithBidirectionalStreamInputChunk(value=BidirectionalInputPayloadPart())
+          │    │       │            └ <function AWSEventPublisher.send at 0x162726160>
+          │    │       └ <smithy_aws_event_stream.aio.AWSEventPublisher object at 0x16c955be0>
+          │    └ <smithy_core.aio.eventstream.DuplexEventStream object at 0x16c955e80>
+          └ <pipecat.services.aws_nova_sonic.aws.AWSNovaSonicLLMService object at 0x16c934590>
+  File "/Users/richardkang/Documents/github/speech-to-speech-amazon-nova-sonic/nova-sonic/api-p13venv/lib/python3.13/site-packages/smithy_aws_event_stream/aio/__init__.py", line 51, in send
+    raise OSError("Attempted to write to closed stream.")
+
+OSError: Attempted to write to closed stream.
+2025-06-25 13:50:20.089 | WARNING  | pipecat.pipeline.task:_process_up_queue:488 - Something went wrong: ErrorFrame#0(error: Attempted to write to closed stream., fatal: False)
+2025-06-25 13:50:20.089 | WARNING  | pipecat.pipeline.task:_process_up_queue:488 - Something went wrong: ErrorFrame#1(error: Attempted to write to closed stream., fatal: False)
+2025-06-25 13:51:09.186 | INFO     | __main__:<module>:37 - Logging to file: nova-sonic/api.log
+2025-06-25 13:51:09.188 | INFO     | __main__:main:230 - Starting Nova Sonic API on localhost:8000
+2025-06-25 13:51:11.495 | INFO     | bot:run_bot:26 - Starting Nova Sonic bot
+2025-06-25 13:51:11.495 | INFO     | bot:run_bot:30 - New conversation started: ceb127e6-a6ef-4fb0-bcf2-afad20a6804a
+2025-06-25 13:51:11.565 | INFO     | pipecat.services.aws_nova_sonic.aws:_start_connecting:302 - Connecting...
+2025-06-25 13:51:11.568 | INFO     | pipecat.transports.network.small_webrtc:connect:308 - Connecting to Small WebRTC
+2025-06-25 13:51:11.568 | INFO     | pipecat.audio.vad.vad_analyzer:set_params:74 - Setting VAD params to: confidence=0.7 start_secs=0.2 stop_secs=0.8 min_volume=0.6
+2025-06-25 13:51:11.569 | INFO     | pipecat.transports.network.small_webrtc:connect:308 - Connecting to Small WebRTC
+2025-06-25 13:51:11.597 | INFO     | bot:on_client_connected:156 - Client connected
+2025-06-25 13:51:11.597 | INFO     | bot:on_client_connected:159 - Updated transport in transcript handler
+2025-06-25 13:51:11.598 | INFO     | bot:on_client_connected:167 - Sending test transcript messages
+2025-06-25 13:51:11.599 | INFO     | pipecat.services.aws_nova_sonic.aws:_finish_connecting_if_context_available:336 - Finishing connecting (setting up session)...
+2025-06-25 13:51:11.600 | INFO     | pipecat.services.aws_nova_sonic.aws:_finish_connecting_if_context_available:373 - Finished connecting
+2025-06-25 13:51:19.653 | WARNING  | pipecat.transports.network.small_webrtc:read_audio_frame:258 - Received an unexpected media stream error while reading the audio.
+2025-06-25 13:51:19.655 | INFO     | __main__:handle_disconnected:111 - Discarding peer connection for pc_id: SmallWebRTCConnection#0
+2025-06-25 13:51:19.656 | INFO     | bot:on_client_closed:177 - Client closed connection
+2025-06-25 13:51:19.660 | INFO     | pipecat.transports.network.small_webrtc:disconnect:313 - Disconnecting to Small WebRTC
+2025-06-25 13:51:19.660 | INFO     | bot:on_client_disconnected:173 - Client disconnected
+2025-06-25 13:51:19.661 | INFO     | pipecat.services.aws_nova_sonic.aws:_disconnect:382 - Disconnecting...
+2025-06-25 13:51:19.911 | ERROR    | pipecat.services.aws_nova_sonic.aws:_receive_task_handler:729 - AWSNovaSonicLLMService#0 error processing responses: Invalid input request, please fix your input and try again.
+2025-06-25 13:51:20.661 | INFO     | pipecat.services.aws_nova_sonic.aws:_disconnect:420 - Finished disconnecting
+2025-06-25 14:34:56.816 | INFO     | __main__:<module>:37 - Logging to file: nova-sonic/api.log
+2025-06-25 14:34:56.818 | INFO     | __main__:main:230 - Starting Nova Sonic API on localhost:8000
+2025-06-25 16:50:09.064 | INFO     | __main__:<module>:37 - Logging to file: nova-sonic/api.log
+2025-06-25 16:50:09.065 | INFO     | __main__:main:230 - Starting Nova Sonic API on localhost:8000
