@@ -34,6 +34,11 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams
 
+from datetime import datetime
+
+import asyncio
+from bot_bedrock_nova import main  
+
 # Load environment variables from .env file
 load_dotenv(override=True)
 
@@ -58,13 +63,13 @@ def cleanup():
         proc.wait()
 
 
-def get_bot_file():
-    bot_implementation = os.getenv("BOT_IMPLEMENTATION", "bedrock-nova").lower().strip()
-    if bot_implementation not in ["bedrock-nova"]:
-        raise ValueError(
-            f"Invalid BOT_IMPLEMENTATION: {bot_implementation}. Must be 'bedrock-nova'"
-        )
-    return f"bot-{bot_implementation}"
+# def get_bot_file():
+#     bot_implementation = os.getenv("BOT_IMPLEMENTATION", "bedrock-nova").lower().strip()
+#     if bot_implementation not in ["bedrock-nova"]:
+#         raise ValueError(
+#             f"Invalid BOT_IMPLEMENTATION: {bot_implementation}. Must be 'bedrock-nova'"
+#         )
+#     return f"bot-{bot_implementation}"
 
 
 @asynccontextmanager
@@ -161,6 +166,11 @@ async def create_room_and_token() -> tuple[str, str]:
 
 #     return RedirectResponse(room_url)
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
 
 @app.post("/connect")
 async def rtvi_connect(request: Request) -> Dict[Any, Any]:
@@ -180,13 +190,24 @@ async def rtvi_connect(request: Request) -> Dict[Any, Any]:
 
     # Start the bot process
     try:
-        bot_file = get_bot_file()
-        proc = subprocess.Popen(
-            [f"python3 -m {bot_file} -u {room_url} -t {token}"],
-            shell=True,
-            bufsize=1,
-            cwd=os.path.dirname(os.path.abspath(__file__)),
+        # bot_file = get_bot_file()
+        bot_file = "bot_bedrock_nova"
+        command = f"python3 -m {bot_file} -u {room_url} -t {token}"
+        working_dir = os.path.dirname(os.path.abspath(__file__))
+
+        proc = await asyncio.create_subprocess_shell(
+            command,
+            cwd=working_dir,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
+
+        # proc = subprocess.Popen(
+        #     [f"python3 -m {bot_file} -u {room_url} -t {token}"],
+        #     shell=True,
+        #     bufsize=1,
+        #     cwd=os.path.dirname(os.path.abspath(__file__)),
+        # )
         bot_procs[proc.pid] = (proc, room_url)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start subprocess: {e}")
