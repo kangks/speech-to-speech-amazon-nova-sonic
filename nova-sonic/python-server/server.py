@@ -5,8 +5,10 @@ import logging
 import http.server
 import threading
 import os
+import time
 from http import HTTPStatus
 from s2s_session_manager import S2sSessionManager
+from s2s_events import S2sEvent
 from integration.strands_agent import StrandsAgent
 from config import Config
 
@@ -84,8 +86,12 @@ def start_health_check_server(health_host, health_port):
 
 async def websocket_handler(websocket):
     stream_manager = None
+    keepalive_task = None
     logger.debug("WebSocket connection established")
     try:
+        # Start the keepalive task immediately to prevent ALB from closing the connection
+        keepalive_task = asyncio.create_task(websocket_keepalive(websocket))
+        
         async for message in websocket:
             try:
                 data = json.loads(message)
@@ -153,6 +159,11 @@ async def websocket_handler(websocket):
                             # Handle session end event
                             await stream_manager.send_raw_event(data)
                             logger.info("Prompt end event received, closing connection")
+                        elif event_type == 'ping':
+                            # Handle ping event - just log it, no need to forward to Bedrock
+                            logger.debug("Received ping response from client")
+                            # Optionally send a pong response if needed
+                            # await websocket.send(json.dumps(S2sEvent.ping()))
                         else:
                             logger.info(f"Received event in else: {event_type}")
                             # For backward compatibility, send other events directly to Bedrock
@@ -171,10 +182,41 @@ async def websocket_handler(websocket):
             await stream_manager.close()
         if 'forward_task' in locals() and forward_task:
             forward_task.cancel()
+        if 'keepalive_task' in locals() and keepalive_task:
+            keepalive_task.cancel()
         if websocket:
             websocket.close()
         if MCP_CLIENT:
             MCP_CLIENT.cleanup()
+
+
+async def websocket_keepalive(websocket):
+    """Send periodic ping frames to keep the WebSocket connection alive."""
+    try:
+        while True:
+            try:
+                # Send a ping frame every 30 seconds
+                # This will help prevent the ALB from closing the connection due to inactivity
+                await asyncio.sleep(30)
+                
+                # Create a ping event using the S2sEvent class
+                ping_event = S2sEvent.ping()
+                
+                # Send the ping event
+                await websocket.send(json.dumps(ping_event))
+                logger.debug("Sent WebSocket keepalive ping")
+                
+            except websockets.exceptions.ConnectionClosed:
+                logger.debug("WebSocket closed, stopping keepalive")
+                break
+            except Exception as e:
+                logger.warning(f"Error in WebSocket keepalive: {str(e)}")
+                # Continue the loop to try again
+    except asyncio.CancelledError:
+        # Task was cancelled
+        pass
+    except Exception as e:
+        logger.exception(f"Unhandled error in keepalive task: {e}")
 
 
 async def forward_responses(websocket, stream_manager):

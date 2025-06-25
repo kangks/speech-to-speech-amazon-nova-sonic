@@ -237,3 +237,15 @@ class S2sEvent:
         "sessionEnd": {}
       }
     }
+    
+  @staticmethod
+  def ping():
+    """Create a ping event for WebSocket keepalive."""
+    import time
+    return {
+      "event": {
+        "ping": {
+          "timestamp": int(time.time() * 1000)
+        }
+      }
+    }

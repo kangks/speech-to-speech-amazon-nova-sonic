@@ -101,13 +101,12 @@ class S2sSessionManager:
             raise
     
     async def send_raw_event(self, event_data):
+        """Send a raw event to the Bedrock stream."""
         try:
             event_type = list(event_data['event'].keys())[0]
             if event_type != 'audioInput':
-                logger.debug(f"send_raw_event: event of type: {event_type}") 
-            # logger.info(f"Sending event: {event_data['event'] if 'event' in event_data else 'Unknown event'}")
+                logger.debug(f"send_raw_event: event of type: {event_type}")
 
-            """Send a raw event to the Bedrock stream."""
             if not self.stream or not self.is_active:
                 logger.debug("Stream not initialized or closed")
                 return
@@ -115,26 +114,44 @@ class S2sSessionManager:
             event_json = json.dumps(event_data)
 
             logger.debug(f"Sending event: {event_json[0:180]}")  # Print first 180 characters for brevity
-            #if "audioInput" not in event_data["event"]:
-            #    print(event_json)
+            
             event = InvokeModelWithBidirectionalStreamInputChunk(
                 value=BidirectionalInputPayloadPart(bytes_=event_json.encode('utf-8'))
             )
-            await self.stream.input_stream.send(event)
+            
+            try:
+                await self.stream.input_stream.send(event)
+            except Exception as e:
+                if "AwsCrtError" in str(e):
+                    logger.error(f"AWS CRT Error when sending event: {str(e)}")
+                    # If this is a critical event, we might want to attempt reconnection
+                    if event_type not in ['audioInput', 'ping']:  # Don't reconnect for audio or ping events
+                        logger.warning("Critical event failed to send, attempting to reinitialize stream")
+                        await self._attempt_reconnect()
+                        # Try sending again after reconnection
+                        if self.is_active and self.stream:
+                            await self.stream.input_stream.send(event)
+                else:
+                    raise  # Re-raise if it's not an AwsCrtError
 
             # Close session
             if "sessionEnd" in event_data["event"]:
                 self.close()
             
         except Exception as e:
-            logger.debug(f"Error sending event: {str(e)}")
+            logger.error(f"Error sending event: {str(e)}")
+            # Don't raise the exception to avoid breaking the application flow
     
     async def _process_audio_input(self):
         """Process audio input from the queue and send to Bedrock."""
         while self.is_active:
             try:
-                # Get audio data from the queue
-                data = await self.audio_input_queue.get()
+                # Get audio data from the queue with a timeout to prevent blocking indefinitely
+                try:
+                    data = await asyncio.wait_for(self.audio_input_queue.get(), timeout=30.0)
+                except asyncio.TimeoutError:
+                    # No data received within timeout, continue the loop
+                    continue
                 
                 # Extract data from the queue item
                 prompt_name = data.get('prompt_name')
@@ -145,18 +162,37 @@ class S2sSessionManager:
                     logger.debug("Missing required audio data properties")
                     continue
 
-                logger.debug(f"Processing audio input for prompt '{prompt_name}' and content '{content_name}'")  
+                logger.debug(f"Processing audio input for prompt '{prompt_name}' and content '{content_name}'")
 
                 # Create the audio input event
                 audio_event = S2sEvent.audio_input(prompt_name, content_name, audio_bytes.decode('utf-8') if isinstance(audio_bytes, bytes) else audio_bytes)
                 
-                # Send the event
-                await self.send_raw_event(audio_event)
+                # Send the event with retry logic
+                max_retries = 3
+                retry_count = 0
+                while retry_count < max_retries:
+                    try:
+                        await self.send_raw_event(audio_event)
+                        break  # Success, exit retry loop
+                    except Exception as e:
+                        retry_count += 1
+                        if "AwsCrtError" in str(e) and retry_count < max_retries:
+                            logger.warning(f"AWS CRT Error when sending audio, retrying ({retry_count}/{max_retries}): {str(e)}")
+                            await asyncio.sleep(0.5)  # Short delay before retry
+                        else:
+                            # Either not an AwsCrtError or we've exhausted retries
+                            raise
                 
             except asyncio.CancelledError:
+                logger.info("Audio processing task cancelled")
                 break
             except Exception as e:
-                logger.exception(f"Error processing audio: {e}")
+                if "AwsCrtError" in str(e):
+                    logger.error(f"AWS CRT Error in audio processing: {str(e)}")
+                    # Don't break the loop for CRT errors, try to continue
+                    await asyncio.sleep(1)  # Add a delay to avoid rapid retries
+                else:
+                    logger.exception(f"Error processing audio: {e}")
     
     def add_audio_chunk(self, prompt_name, content_name, audio_data):
         """Add an audio chunk to the queue."""
@@ -303,6 +339,44 @@ class S2sSessionManager:
         except Exception as ex:
             logger.error(f"Error in processToolUse: {ex}")
             return {"result": "An error occurred while attempting to retrieve information related to the toolUse event."}
+    async def _attempt_reconnect(self):
+        """Attempt to reconnect to the Bedrock stream after a connection error."""
+        logger.info("Attempting to reconnect to Bedrock stream")
+        try:
+            # Close existing stream if any
+            if self.stream:
+                try:
+                    await self.stream.input_stream.close()
+                except Exception as e:
+                    logger.warning(f"Error closing existing stream during reconnect: {str(e)}")
+            
+            # Cancel existing response task if any
+            if self.response_task and not self.response_task.done():
+                self.response_task.cancel()
+                try:
+                    await self.response_task
+                except asyncio.CancelledError:
+                    pass
+            
+            # Reinitialize the client
+            self._initialize_client()
+            
+            # Initialize a new stream
+            self.stream = await self.bedrock_client.invoke_model_with_bidirectional_stream(
+                InvokeModelWithBidirectionalStreamOperationInput(model_id=self.model_id)
+            )
+            
+            self.is_active = True
+            
+            # Start listening for responses again
+            self.response_task = asyncio.create_task(self._process_responses())
+            
+            logger.info("Successfully reconnected to Bedrock stream")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to reconnect to Bedrock stream: {str(e)}")
+            self.is_active = False
+            return False
     
     async def close(self):
         """Close the stream properly."""
@@ -312,7 +386,10 @@ class S2sSessionManager:
         self.is_active = False
         
         if self.stream:
-            await self.stream.input_stream.close()
+            try:
+                await self.stream.input_stream.close()
+            except Exception as e:
+                logger.warning(f"Error closing stream: {str(e)}")
         
         if self.response_task and not self.response_task.done():
             self.response_task.cancel()
@@ -320,4 +397,5 @@ class S2sSessionManager:
                 await self.response_task
             except asyncio.CancelledError:
                 pass
+        
         
