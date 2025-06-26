@@ -27,6 +27,8 @@ from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
 from pipecat.services.aws_nova_sonic import AWSNovaSonicLLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 
+from function_schema import tools, register_functions
+
 load_dotenv(override=True)
 logger.remove(0)
 logger.add(sys.stderr, level="DEBUG")
@@ -166,10 +168,11 @@ async def main():
                     "content": "Hello, I'm here for my interview.",
                 },
             ],
-            # tools=tools,
+            tools=tools,
         )
         context_aggregator = llm.create_context_aggregator(context)
 
+        register_functions(llm)
         ta = TalkingAnimation()
 
         #
