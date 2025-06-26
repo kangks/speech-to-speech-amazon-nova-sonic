@@ -27,7 +27,7 @@ export class CdkStack extends cdk.Stack {
     
     // Add tags to all resources in the stack
     cdk.Tags.of(this).add('Project', 'NovaSonic');
-    cdk.Tags.of(this).add('Environment', 'Production');
+    cdk.Tags.of(this).add('Environment', 'POC');
     cdk.Tags.of(this).add('ManagedBy', 'CDK');
 
     // Load DNS configuration
@@ -128,9 +128,9 @@ export class CdkStack extends cdk.Stack {
     // Create Fargate service with ALB
     const serverService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'ServerService', {
       cluster,
-      memoryLimitMiB: 1024,
-      cpu: 512,
-      desiredCount: 2,
+      memoryLimitMiB: 2048,
+      cpu: 1024,
+      desiredCount: 1,
       taskImageOptions: {
         image: ecs.ContainerImage.fromDockerImageAsset(serverImage),        
         containerPort: 8000,
@@ -176,15 +176,6 @@ export class CdkStack extends cdk.Stack {
       unhealthyThresholdCount: 5,
       healthyHttpCodes: '200,201,202,203,204,301,302,303,304',
       port: '8000',
-    });
-
-    // Create Route53 alias records
-    new route53.ARecord(this, 'ServerAliasRecord', {
-      zone: hostedZone,
-      recordName: dnsConfig.apiSubdomain,
-      target: route53.RecordTarget.fromAlias(
-        new route53Targets.LoadBalancerTarget(serverService.loadBalancer)
-      ),
     });
 
     return serverService;
@@ -240,15 +231,6 @@ export class CdkStack extends cdk.Stack {
       unhealthyThresholdCount: 5,
       healthyHttpCodes: '200,301,302',
       port: '80',
-    });
-
-    // Create Route53 alias records
-    new route53.ARecord(this, 'WebappAliasRecord', {
-      zone: hostedZone,
-      recordName: dnsConfig.webappSubdomain,
-      target: route53.RecordTarget.fromAlias(
-        new route53Targets.LoadBalancerTarget(webappService.loadBalancer)
-      ),
     });
 
     return webappService;

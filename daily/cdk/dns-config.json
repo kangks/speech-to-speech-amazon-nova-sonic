@@ -1,0 +1,7 @@
+{
+  "domainName": "<domain name>",
+  "webappSubdomain": "<web app subdomain>",
+  "apiSubdomain": "<server api subdomain>",
+  "webappCertificateArn": "arn:aws:acm:<region>:<account ID>:certificate/<certificate ID>",
+  "apiCertificateArn": "arn:aws:acm:<region>:<account ID>:certificate/<certificate ID>"
+}

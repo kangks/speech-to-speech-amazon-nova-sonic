@@ -1,0 +1,9 @@
+You are a cloud architect with extensive experience in running client server Generative AI architect on AWS using Amazon Bedrock.
+
+Your task is to create daily/README.MD to document the architecture of the server side implemenatation in daily/server, and how the simple Vite web client daily/vite-client connects to the backend using Daily WebRTC transport.
+
+1. Study how the server daily/server/server.py handle /connect, creates a Daily room, spawn the Amazon Nova Sonic bot in that room
+2. Explain how daily/server/bot_bedrock_nova.py handle the RTVI bidirectional requests;
+3. Explain how daily/vite-client handle the user voice inputs and the webrtc connections via Daily transport;
+4. Study daily/cdk/lib/cdk-stack.ts and document how the AWS architecture will be deployed 
+4. use the awslabs.aws_diagram to illustrate the AWS architecture
