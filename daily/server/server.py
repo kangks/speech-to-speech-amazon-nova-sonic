@@ -32,7 +32,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams
+from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams, DailyRoomProperties
 
 from datetime import datetime
 
@@ -116,7 +116,12 @@ async def create_room_and_token() -> tuple[str, str]:
     room_url = os.getenv("DAILY_SAMPLE_ROOM_URL", None)
     token = os.getenv("DAILY_SAMPLE_ROOM_TOKEN", None)
     if not room_url:
-        room = await daily_helpers["rest"].create_room(DailyRoomParams())
+        roomParams = DailyRoomParams(
+            properties=DailyRoomProperties(
+                geo="ap-southeast-1"
+            )
+        )
+        room = await daily_helpers["rest"].create_room(roomParams)
         if not room.url:
             raise HTTPException(status_code=500, detail="Failed to create room")
         room_url = room.url

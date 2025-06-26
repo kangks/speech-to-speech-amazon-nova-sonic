@@ -111,29 +111,7 @@ async def main():
                 video_out_height=576,
                 vad_analyzer=SileroVADAnalyzer(),
                 transcription_enabled=True,
-                #
-                # Spanish
-                #
-                # transcription_settings=DailyTranscriptionSettings(
-                #     language="es",
-                #     tier="nova",
-                #     model="2-general"
-                # )
             ),
-        )
-
-        # Initialize text-to-speech service
-        tts = ElevenLabsTTSService(
-            api_key=os.getenv("ELEVENLABS_API_KEY"),
-            #
-            # English
-            #
-            voice_id="pNInz6obpgDQGcFmaJgB",
-            #
-            # Spanish
-            #
-            # model="eleven_multilingual_v2",
-            # voice_id="gD1IexrzCvsXPHUuT0s3",
         )
 
         # Initialize LLM service

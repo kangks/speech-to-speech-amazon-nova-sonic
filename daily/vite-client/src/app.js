@@ -45,6 +45,12 @@ class ChatbotClient {
 
     // Create an audio element for bot's voice output
     this.botAudio = document.createElement('audio');
+
+    // Reduce Audio Latency on Client
+    this.botAudio.setSinkId('default'); // For hardware acceleration if supported
+    this.botAudio.preload = "auto";
+    this.botAudio.defaultPlaybackRate = 1.0;
+
     this.botAudio.autoplay = true;
     this.botAudio.playsInline = true;
     document.body.appendChild(this.botAudio);
@@ -83,12 +89,31 @@ class ChatbotClient {
           this.connectBtn.disabled = true;
           this.disconnectBtn.disabled = false;
           this.log('Client connected');
+
+          // Start periodic audio-level stats monitoring
+          if (!this._statsInterval) {
+            this._statsInterval = setInterval(() => {
+              const call = this.rtviClient?.transport?._call;
+              if (call?.getStats) {
+                call.getStats().then(stats => {
+                  // Optional: filter for audio levels or RTT here
+                  this.log(`[Stats] Audio: ${JSON.stringify(stats, null, 2)}`);
+                });
+              }
+            }, 5000); // every 2 seconds
+          }          
         },
         onDisconnected: () => {
           this.updateStatus('Disconnected');
           this.connectBtn.disabled = false;
           this.disconnectBtn.disabled = true;
           this.log('Client disconnected');
+
+         if (this._statsInterval) {
+            clearInterval(this._statsInterval);
+            this._statsInterval = null;
+          }
+          
         },
         // Handle transport state changes
         onTransportStateChanged: (state) => {

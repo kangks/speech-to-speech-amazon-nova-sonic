@@ -20,6 +20,12 @@ body {
   margin-bottom: 20px;
 }
 
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .controls button {
   padding: 8px 16px;
   margin-left: 10px;
@@ -95,4 +101,20 @@ button:disabled {
   font-family: monospace;
   font-size: 12px;
   line-height: 1.4;
+}
+
+.doit-logo {
+  height: 42px;
+  width: auto;
+}
+
+.nova-logo {
+  height: 42px;
+  width: auto;
+}
+
+.app-title {
+  font-weight: 500;
+  font-size: 18px;
+  color: #111;
 }
