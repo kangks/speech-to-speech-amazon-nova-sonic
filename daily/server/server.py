@@ -132,45 +132,6 @@ async def create_room_and_token() -> tuple[str, str]:
 
     return room_url, token
 
-
-# @app.get("/")
-# async def start_agent(request: Request):
-#     """Endpoint for direct browser access to the bot.
-
-#     Creates a room, starts a bot instance, and redirects to the Daily room URL.
-
-#     Returns:
-#         RedirectResponse: Redirects to the Daily room URL
-
-#     Raises:
-#         HTTPException: If room creation, token generation, or bot startup fails
-#     """
-#     print("Creating room")
-#     room_url, token = await create_room_and_token()
-#     print(f"Room URL: {room_url}")
-
-#     # Check if there is already an existing process running in this room
-#     num_bots_in_room = sum(
-#         1 for proc in bot_procs.values() if proc[1] == room_url and proc[0].poll() is None
-#     )
-#     if num_bots_in_room >= MAX_BOTS_PER_ROOM:
-#         raise HTTPException(status_code=500, detail=f"Max bot limit reached for room: {room_url}")
-
-#     # Spawn a new bot process
-#     try:
-#         bot_file = get_bot_file()
-#         proc = subprocess.Popen(
-#             [f"python3 -m {bot_file} -u {room_url} -t {token}"],
-#             shell=True,
-#             bufsize=1,
-#             cwd=os.path.dirname(os.path.abspath(__file__)),
-#         )
-#         bot_procs[proc.pid] = (proc, room_url)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Failed to start subprocess: {e}")
-
-#     return RedirectResponse(room_url)
-
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
