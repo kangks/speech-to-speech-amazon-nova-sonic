@@ -118,7 +118,7 @@ async def create_room_and_token() -> tuple[str, str]:
     if not room_url:
         roomParams = DailyRoomParams(
             properties=DailyRoomProperties(
-                geo="ap-southeast-1"
+                geo="ap-southeast-1" # https://docs.daily.co/reference/rest-api/rooms/config
             )
         )
         room = await daily_helpers["rest"].create_room(roomParams)
