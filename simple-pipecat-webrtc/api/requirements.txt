@@ -1,8 +1,0 @@
-aiortc
-boto3
-fastapi
-uvicorn
-python-dotenv
-pydantic
-aws-sdk-bedrock-runtime
-smithy-aws-core
