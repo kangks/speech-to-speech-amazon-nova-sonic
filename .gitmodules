@@ -1,3 +1,6 @@
 [submodule "amazon-q-business-workshop"]
 	path = amazon-q-business-workshop
 	url = https://github.com/doitintl/amazon-q-business-workshop.git
+[submodule "daily/daily-recordings-bucket"]
+	path = daily/daily-recordings-bucket
+	url = https://github.com/daily-co/daily-recordings-bucket
