@@ -30,8 +30,10 @@ from pipecat.transports.services.daily import DailyParams, DailyTransport
 from function_schema import tools, register_functions
 
 load_dotenv(override=True)
-logger.remove(0)
-logger.add(sys.stderr, level="DEBUG")
+# logger.remove(0)
+logger.add(sys.stdout, level="DEBUG")
+logger.add("bot_bedrock_nova.err", level="ERROR")
+logger.add("bot_bedrock_nova.log", level="DEBUG")
 
 sprites = []
 script_dir = os.path.dirname(__file__)
@@ -116,12 +118,31 @@ async def main():
             ),
         )
 
+        # # Initialize text-to-speech service
+        # tts = ElevenLabsTTSService(
+        #     api_key=os.getenv("ELEVENLABS_API_KEY"),
+        #     #
+        #     # English
+        #     #
+        #     voice_id="pNInz6obpgDQGcFmaJgB",
+        #     #
+        #     # Spanish
+        #     #
+        #     # model="eleven_multilingual_v2",
+        #     # voice_id="gD1IexrzCvsXPHUuT0s3",
+        # )        
+
+        NOVA_AWS_SECRET_ACCESS_KEY=os.getenv("NOVA_AWS_SECRET_ACCESS_KEY")
+        NOVA_AWS_ACCESS_KEY_ID=os.getenv("NOVA_AWS_ACCESS_KEY_ID")
+        logger.info(f"NOVA_AWS_ACCESS_KEY_ID: {NOVA_AWS_ACCESS_KEY_ID}")
+        logger.info(f"NOVA_AWS_SECRET_ACCESS_KEY: {NOVA_AWS_SECRET_ACCESS_KEY}")
+
         # Initialize LLM service
         # llm = AWSNovaSonicLLMService(api_key=os.getenv("OPENAI_API_KEY"))
         # Create the AWS Nova Sonic LLM service
         llm = AWSNovaSonicLLMService(
-            secret_access_key=os.getenv("NOVA_AWS_SECRET_ACCESS_KEY"),
-            access_key_id=os.getenv("NOVA_AWS_ACCESS_KEY_ID"),
+            secret_access_key=NOVA_AWS_SECRET_ACCESS_KEY,
+            access_key_id=NOVA_AWS_ACCESS_KEY_ID,
             region=os.getenv("NOVA_AWS_REGION", "us-east-1"),
             voice_id=os.getenv("NOVA_VOICE_ID", "tiffany"),  # matthew, tiffany, amy
             send_transcription_frames=True
@@ -168,11 +189,11 @@ async def main():
                     "content": "Hello, I'm here for my interview.",
                 },
             ],
-            tools=tools,
+            # tools=tools,
         )
         context_aggregator = llm.create_context_aggregator(context)
 
-        register_functions(llm)
+        # register_functions(llm)
         ta = TalkingAnimation()
 
         #
@@ -191,6 +212,12 @@ async def main():
                 context_aggregator.assistant(),
             ]
         )
+
+        # start_recording_status =await transport.start_recording()
+        # # start_recording_status = await daily_helpers["rest"].start_recording(room_url, token)
+        # print(f"Start recording status: {start_recording_status}")
+
+        # await transport.start_recording()
 
         task = PipelineTask(
             pipeline,
@@ -222,15 +249,32 @@ async def main():
             
             # Send test transcript messages to verify transcript functionality
             logger.info("Sending test transcript messages")
-            
+
         @transport.event_handler("on_first_participant_joined")
         async def on_first_participant_joined(transport, participant):
             print(f"Participant joined: {participant}")
+            await transport.start_recording()
+            # await transport.start_cloud_recording()
+            # await transport.start_custom_recording()
             await transport.capture_participant_transcription(participant["id"])
+
+        @transport.event_handler("on_recording_started")
+        async def on_recording_started(any1, any2):
+            print(f"any1: {any1}")
+            print(f"any2: {any2}")
 
         @transport.event_handler("on_participant_left")
         async def on_participant_left(transport, participant, reason):
             print(f"Participant left: {participant}")
+            # First, gracefully stop the LLM service
+            try:
+                # Add a method to the LLM service to close streams properly
+                # await llm.close_streams()
+                await transport.stop_recording()
+                # await transport.start_cloud_recording()
+            except Exception as e:
+                logger.error(f"Error closing LLM streams: {e}")
+
             await task.cancel()
 
         runner = PipelineRunner()

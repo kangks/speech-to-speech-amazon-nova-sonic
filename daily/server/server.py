@@ -32,7 +32,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams, DailyRoomProperties
+from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, DailyRoomParams, DailyRoomProperties, RecordingsBucketConfig, DailyMeetingTokenParams, DailyMeetingTokenProperties
 
 from datetime import datetime
 
@@ -61,16 +61,6 @@ def cleanup():
         proc = entry[0]
         proc.terminate()
         proc.wait()
-
-
-# def get_bot_file():
-#     bot_implementation = os.getenv("BOT_IMPLEMENTATION", "bedrock-nova").lower().strip()
-#     if bot_implementation not in ["bedrock-nova"]:
-#         raise ValueError(
-#             f"Invalid BOT_IMPLEMENTATION: {bot_implementation}. Must be 'bedrock-nova'"
-#         )
-#     return f"bot-{bot_implementation}"
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -118,15 +108,31 @@ async def create_room_and_token() -> tuple[str, str]:
     if not room_url:
         roomParams = DailyRoomParams(
             properties=DailyRoomProperties(
+                enable_recording="raw-tracks",
+                recordings_bucket=RecordingsBucketConfig(
+                    bucket_name=os.getenv("RECORDING_S3_BUCKETNAME", ""),
+                    bucket_region=os.getenv("RECORDING_S3_REGION", ""),
+                    assume_role_arn=os.getenv("RECORDING_ASSUME_ROLE_ARN", ""),
+                    allow_api_access=True,
+                ),
                 geo="ap-southeast-1" # https://docs.daily.co/reference/rest-api/rooms/config
             )
         )
+        # https://pipecat-docs.readthedocs.io/en/latest/api/pipecat.transports.services.helpers.daily_rest.html
         room = await daily_helpers["rest"].create_room(roomParams)
         if not room.url:
             raise HTTPException(status_code=500, detail="Failed to create room")
         room_url = room.url
 
-        token = await daily_helpers["rest"].get_token(room_url)
+        token_params = DailyMeetingTokenParams(
+            properties=DailyMeetingTokenProperties(
+            )
+        )
+        token = await daily_helpers["rest"].get_token(
+            room_url=room_url,
+            params=token_params
+        )        
+
         if not token:
             raise HTTPException(status_code=500, detail=f"Failed to get token for room: {room_url}")
 
@@ -161,19 +167,20 @@ async def rtvi_connect(request: Request) -> Dict[Any, Any]:
         command = f"python3 -m {bot_file} -u {room_url} -t {token}"
         working_dir = os.path.dirname(os.path.abspath(__file__))
 
-        proc = await asyncio.create_subprocess_shell(
-            command,
-            cwd=working_dir,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+        # proc = await asyncio.create_subprocess_shell(
+        #     command,
+        #     cwd=working_dir,
+        #     stdout=asyncio.subprocess.PIPE,
+        #     stderr=asyncio.subprocess.PIPE
+        # )
+
+        proc = subprocess.Popen(
+            [f"python3 -m {bot_file} -u {room_url} -t {token}"],
+            shell=True,
+            bufsize=1,
+            cwd=os.path.dirname(os.path.abspath(__file__)),
         )
 
-        # proc = subprocess.Popen(
-        #     [f"python3 -m {bot_file} -u {room_url} -t {token}"],
-        #     shell=True,
-        #     bufsize=1,
-        #     cwd=os.path.dirname(os.path.abspath(__file__)),
-        # )
         bot_procs[proc.pid] = (proc, room_url)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start subprocess: {e}")
