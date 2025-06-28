@@ -12,6 +12,7 @@
 
 import { RTVIClient, RTVIEvent } from '@pipecat-ai/client-js';
 import { DailyTransport } from '@pipecat-ai/daily-transport';
+import VideoManager from './VideoManager.js';
 
 /**
  * ChatbotClient handles the connection and media management for a real-time
@@ -21,13 +22,10 @@ class ChatbotClient {
   constructor() {
     // Initialize client state
     this.rtviClient = null;
-    this.cameraToggle = null;
+    this.videoManager = null;
     this.setupDOMElements();
     this.setupEventListeners();
     this.initializeClientAndTransport();
-    
-    // Initialize camera toggle immediately
-    this.initializeCameraToggle();
   }
 
   /**
@@ -39,9 +37,6 @@ class ChatbotClient {
     this.disconnectBtn = document.getElementById('disconnect-btn');
     this.statusSpan = document.getElementById('connection-status');
     this.debugLog = document.getElementById('debug-log');
-    this.botVideoContainer = document.getElementById('bot-video-container');
-
-    // Get reference to the camera controls container
     this.cameraControlsContainer = document.getElementById('camera-controls');
 
     // Create an audio element for bot's voice output
@@ -121,7 +116,7 @@ class ChatbotClient {
           this.updateStatus(`Transport: ${state}`);
           this.log(`Transport state changed: ${state}`);
           if (state === 'ready') {
-            this.setupMediaTracks();
+            this.videoManager.setupMediaTracks(this.botAudio);
           }
         },
         // Handle bot connection events
@@ -133,7 +128,7 @@ class ChatbotClient {
         },
         onBotReady: (data) => {
           this.log(`Bot ready: ${JSON.stringify(data)}`);
-          this.setupMediaTracks();
+          this.videoManager.setupMediaTracks(this.botAudio);
         },
         // Transcript events
         onUserTranscript: (data) => {
@@ -155,8 +150,13 @@ class ChatbotClient {
       },
     });
 
-    // Set up listeners for media track events
-    this.setupTrackListeners();
+    // Initialize the VideoManager after the client is set up
+    this.initializeVideoManager().then(videoManager => {
+      // Set up the VideoManager to handle media tracks
+      videoManager.setupTrackListeners(this.botAudio);
+    }).catch(error => {
+      this.log(`Error setting up VideoManager: ${error.message}`);
+    });
   }
 
   /**
@@ -187,94 +187,22 @@ class ChatbotClient {
   }
 
   /**
-   * Check for available media tracks and set them up if present
-   * This is called when the bot is ready or when the transport state changes to ready
+   * Initialize the VideoManager
+   * @returns {Promise<VideoManager>} The initialized VideoManager
    */
-  setupMediaTracks() {
-    if (!this.rtviClient) return;
-
-    // Get current tracks from the client
-    const tracks = this.rtviClient.tracks();
-
-    // Set up any available bot tracks
-    if (tracks.bot?.audio) {
-      this.setupAudioTrack(tracks.bot.audio);
+  async initializeVideoManager() {
+    try {
+      // Create the VideoManager instance
+      this.videoManager = new VideoManager(this.rtviClient, {
+        debug: true
+      });
+      
+      this.log('Video manager initialized');
+      return this.videoManager;
+    } catch (error) {
+      this.log(`Error initializing VideoManager: ${error.message}`);
+      throw error;
     }
-    if (tracks.bot?.video) {
-      this.setupVideoTrack(tracks.bot.video);
-    }
-  }
-
-  /**
-   * Set up listeners for track events (start/stop)
-   * This handles new tracks being added during the session
-   */
-  setupTrackListeners() {
-    if (!this.rtviClient) return;
-
-    // Listen for new tracks starting
-    this.rtviClient.on(RTVIEvent.TrackStarted, (track, participant) => {
-      // Only handle non-local (bot) tracks
-      if (!participant?.local) {
-        if (track.kind === 'audio') {
-          this.setupAudioTrack(track);
-        } else if (track.kind === 'video') {
-          this.setupVideoTrack(track);
-        }
-      }
-    });
-
-    // Listen for tracks stopping
-    this.rtviClient.on(RTVIEvent.TrackStopped, (track, participant) => {
-      this.log(
-        `Track stopped event: ${track.kind} from ${
-          participant?.name || 'unknown'
-        }`
-      );
-    });
-  }
-
-  /**
-   * Set up an audio track for playback
-   * Handles both initial setup and track updates
-   */
-  setupAudioTrack(track) {
-    this.log('Setting up audio track');
-    // Check if we're already playing this track
-    if (this.botAudio.srcObject) {
-      const oldTrack = this.botAudio.srcObject.getAudioTracks()[0];
-      if (oldTrack?.id === track.id) return;
-    }
-    // Create a new MediaStream with the track and set it as the audio source
-    this.botAudio.srcObject = new MediaStream([track]);
-  }
-
-  /**
-   * Set up a video track for display
-   * Handles both initial setup and track updates
-   */
-  setupVideoTrack(track) {
-    this.log('Setting up video track');
-    const videoEl = document.createElement('video');
-    videoEl.autoplay = true;
-    videoEl.playsInline = true;
-    videoEl.muted = true;
-    videoEl.style.width = '100%';
-    videoEl.style.height = '100%';
-    videoEl.style.objectFit = 'cover';
-
-    // Check if we're already displaying this track
-    if (this.botVideoContainer.querySelector('video')?.srcObject) {
-      const oldTrack = this.botVideoContainer
-        .querySelector('video')
-        .srcObject.getVideoTracks()[0];
-      if (oldTrack?.id === track.id) return;
-    }
-
-    // Create a new MediaStream with the track and set it as the video source
-    videoEl.srcObject = new MediaStream([track]);
-    this.botVideoContainer.innerHTML = '';
-    this.botVideoContainer.appendChild(videoEl);
   }
 
   /**
@@ -285,13 +213,13 @@ class ChatbotClient {
     try {
       // First enable the camera and wait for it to load
       this.log('Enabling camera...');
-      if (!this.cameraToggle) {
-        this.log('Camera toggle not initialized yet, initializing now...');
-        await this.initializeCameraToggle(true); // Wait for initialization
+      if (!this.videoManager) {
+        this.log('Video manager not initialized yet, initializing now...');
+        await this.initializeVideoManager();
       }
       
       // Enable camera and wait for it to be ready
-      const cameraEnabled = await this.cameraToggle.toggleCamera();
+      const cameraEnabled = await this.videoManager.toggleLocalCamera();
       
       if (!cameraEnabled) {
         this.log('Failed to enable camera, cannot proceed with connection');
@@ -308,6 +236,9 @@ class ChatbotClient {
       // Connect to the bot
       this.log('Connecting to bot...');
       await this.rtviClient.connect();
+      
+      // Set up media tracks after connection
+      this.videoManager.setupMediaTracks(this.botAudio);
 
       this.log('Connection complete');
     } catch (error) {
@@ -342,24 +273,9 @@ class ChatbotClient {
           this.botAudio.srcObject = null;
         }
 
-        // Clean up video
-        if (this.botVideoContainer.querySelector('video')?.srcObject) {
-          const video = this.botVideoContainer.querySelector('video');
-          video.srcObject.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-        this.botVideoContainer.innerHTML = '';
-
-        // Clean up camera toggle if it exists
-        if (this.cameraToggle) {
-          this.cameraToggle.cleanup();
-        }
-        
-        // Clean up local video as fallback
-        if (document.querySelector('#local-video-container video')?.srcObject) {
-          const video = document.querySelector('#local-video-container video');
-          video.srcObject.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
+        // Clean up video resources through VideoManager
+        if (this.videoManager) {
+          this.videoManager.cleanup();
         }
       } catch (error) {
         this.log(`Error disconnecting: ${error.message}`);
@@ -367,27 +283,7 @@ class ChatbotClient {
     }
   }
 
-  /**
-   * Initialize the camera toggle component
-   * @param {boolean} waitForInit - Whether to wait for initialization to complete
-   * @returns {Promise<void>} - Promise that resolves when initialization is complete
-   */
-  async initializeCameraToggle(waitForInit = false) {
-    try {
-      // Import the CameraToggle module
-      const module = await import('./CameraToggle.js');
-      const CameraToggle = module.default;
-      
-      // Create the CameraToggle instance
-      this.cameraToggle = new CameraToggle(this.rtviClient, this.cameraControlsContainer);
-      
-      this.log('Camera toggle initialized');
-      return this.cameraToggle;
-    } catch (error) {
-      this.log(`Error loading CameraToggle: ${error.message}`);
-      throw error;
-    }
-  }
+  // No longer needed as we're using VideoManager
 }
 
 // Initialize the client when the page loads

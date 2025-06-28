@@ -26,11 +26,24 @@
     </div>
 
     <div class="main-content">
-      <div class="bot-container">
-        <div id="bot-video-container">
+      <div class="video-containers">
+        <div class="video-container-wrapper">
+          <div class="video-label">You</div>
+          <div id="local-video-container" class="video-container">
+            <!-- Local video will be inserted here -->
+          </div>
         </div>
-        <audio id="bot-audio" autoplay></audio>
+        <div class="video-container-wrapper">
+          <div class="video-label">Bot</div>
+          <div id="bot-video-container" class="video-container">
+            <!-- Bot video will be inserted here -->
+          </div>
+        </div>
       </div>
+      <div id="camera-controls" class="control-container">
+        <!-- Camera toggle button will be inserted here -->
+      </div>
+      <audio id="bot-audio" autoplay></audio>
     </div>
 
     <div class="debug-panel">
