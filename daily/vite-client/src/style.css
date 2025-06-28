@@ -118,3 +118,67 @@ button:disabled {
   font-size: 18px;
   color: #111;
 }
+
+/* Camera toggle and local video styles */
+#camera-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#camera-toggle-btn {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#camera-toggle-btn:hover {
+  background-color: #0d8bf2;
+}
+
+#local-video-container {
+  width: 180px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #2196F3;
+  background-color: #000;
+}
+
+.error-message {
+  background-color: #f44336;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  max-width: 300px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  line-height: 1.4;
+}
+
+.retry-btn {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-top: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  align-self: center;
+}
+
+.retry-btn:hover {
+  background-color: #e68a00;
+}

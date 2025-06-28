@@ -110,6 +110,7 @@ async def main():
             DailyParams(
                 audio_in_enabled=True,
                 audio_out_enabled=True,
+                video_in_enabled=True,
                 video_out_enabled=True,
                 video_out_width=1024,
                 video_out_height=576,
@@ -117,20 +118,6 @@ async def main():
                 transcription_enabled=True,
             ),
         )
-
-        # # Initialize text-to-speech service
-        # tts = ElevenLabsTTSService(
-        #     api_key=os.getenv("ELEVENLABS_API_KEY"),
-        #     #
-        #     # English
-        #     #
-        #     voice_id="pNInz6obpgDQGcFmaJgB",
-        #     #
-        #     # Spanish
-        #     #
-        #     # model="eleven_multilingual_v2",
-        #     # voice_id="gD1IexrzCvsXPHUuT0s3",
-        # )        
 
         NOVA_AWS_SECRET_ACCESS_KEY=os.getenv("NOVA_AWS_SECRET_ACCESS_KEY")
         NOVA_AWS_ACCESS_KEY_ID=os.getenv("NOVA_AWS_ACCESS_KEY_ID")

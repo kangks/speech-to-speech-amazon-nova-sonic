@@ -1,10 +1,4 @@
 /**
- * Copyright (c) 2024–2025, Daily
- *
- * SPDX-License-Identifier: BSD 2-Clause License
- */
-
-/**
  * RTVI Client Implementation
  *
  * This client connects to an RTVI-compatible bot server using WebRTC (via Daily).
@@ -27,9 +21,15 @@ class ChatbotClient {
   constructor() {
     // Initialize client state
     this.rtviClient = null;
+    this.cameraToggle = null;
     this.setupDOMElements();
     this.setupEventListeners();
     this.initializeClientAndTransport();
+    
+    // Initialize camera toggle immediately instead of waiting for connection
+    setTimeout(() => {
+      this.initializeCameraToggle();
+    }, 1000); // Short delay to ensure rtviClient is initialized
   }
 
   /**
@@ -42,6 +42,12 @@ class ChatbotClient {
     this.statusSpan = document.getElementById('connection-status');
     this.debugLog = document.getElementById('debug-log');
     this.botVideoContainer = document.getElementById('bot-video-container');
+
+    // Create a container for camera controls
+    this.cameraControlsContainer = document.createElement('div');
+    this.cameraControlsContainer.id = 'camera-controls';
+    this.cameraControlsContainer.className = 'control-container';
+    document.body.appendChild(this.cameraControlsContainer);
 
     // Create an audio element for bot's voice output
     this.botAudio = document.createElement('audio');
@@ -81,7 +87,7 @@ class ChatbotClient {
         },
       },
       enableMic: true, // Enable microphone for user input
-      enableCam: false,
+      enableCam: true,
       callbacks: {
         // Handle connection state changes
         onConnected: () => {
@@ -100,8 +106,8 @@ class ChatbotClient {
                   this.log(`[Stats] Audio: ${JSON.stringify(stats, null, 2)}`);
                 });
               }
-            }, 5000); // every 2 seconds
-          }          
+            }, 5000); // every 5 seconds
+          }
         },
         onDisconnected: () => {
           this.updateStatus('Disconnected');
@@ -330,10 +336,36 @@ class ChatbotClient {
           video.srcObject = null;
         }
         this.botVideoContainer.innerHTML = '';
+
+        // Clean up camera toggle if it exists
+        if (this.cameraToggle) {
+          this.cameraToggle.cleanup();
+        }
+        
+        // Clean up local video as fallback
+        if (document.querySelector('#local-video-container video')?.srcObject) {
+          const video = document.querySelector('#local-video-container video');
+          video.srcObject.getTracks().forEach((track) => track.stop());
+          video.srcObject = null;
+        }
       } catch (error) {
         this.log(`Error disconnecting: ${error.message}`);
       }
     }
+  }
+
+  /**
+   * Initialize the camera toggle component
+   * Called after successful connection
+   */
+  initializeCameraToggle() {
+    // Import and create the CameraToggle component
+    import('./CameraToggle.js').then(module => {
+      const CameraToggle = module.default;
+      this.cameraToggle = new CameraToggle(this.rtviClient, this.cameraControlsContainer);
+    }).catch(error => {
+      this.log(`Error loading CameraToggle: ${error.message}`);
+    });
   }
 }
 
