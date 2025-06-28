@@ -26,10 +26,8 @@ class ChatbotClient {
     this.setupEventListeners();
     this.initializeClientAndTransport();
     
-    // Initialize camera toggle immediately instead of waiting for connection
-    setTimeout(() => {
-      this.initializeCameraToggle();
-    }, 1000); // Short delay to ensure rtviClient is initialized
+    // Initialize camera toggle immediately
+    this.initializeCameraToggle();
   }
 
   /**
@@ -43,11 +41,8 @@ class ChatbotClient {
     this.debugLog = document.getElementById('debug-log');
     this.botVideoContainer = document.getElementById('bot-video-container');
 
-    // Create a container for camera controls
-    this.cameraControlsContainer = document.createElement('div');
-    this.cameraControlsContainer.id = 'camera-controls';
-    this.cameraControlsContainer.className = 'control-container';
-    document.body.appendChild(this.cameraControlsContainer);
+    // Get reference to the camera controls container
+    this.cameraControlsContainer = document.getElementById('camera-controls');
 
     // Create an audio element for bot's voice output
     this.botAudio = document.createElement('audio');
@@ -284,10 +279,28 @@ class ChatbotClient {
 
   /**
    * Initialize and connect to the bot
-   * This sets up the RTVI client, initializes devices, and establishes the connection
+   * First enables the camera, then initializes devices and establishes the connection
    */
   async connect() {
     try {
+      // First enable the camera and wait for it to load
+      this.log('Enabling camera...');
+      if (!this.cameraToggle) {
+        this.log('Camera toggle not initialized yet, initializing now...');
+        await this.initializeCameraToggle(true); // Wait for initialization
+      }
+      
+      // Enable camera and wait for it to be ready
+      const cameraEnabled = await this.cameraToggle.toggleCamera();
+      
+      if (!cameraEnabled) {
+        this.log('Failed to enable camera, cannot proceed with connection');
+        this.updateStatus('Camera Error');
+        return;
+      }
+      
+      this.log('Camera enabled successfully, proceeding with connection');
+      
       // Initialize audio/video devices
       this.log('Initializing devices...');
       await this.rtviClient.initDevices();
@@ -356,16 +369,24 @@ class ChatbotClient {
 
   /**
    * Initialize the camera toggle component
-   * Called after successful connection
+   * @param {boolean} waitForInit - Whether to wait for initialization to complete
+   * @returns {Promise<void>} - Promise that resolves when initialization is complete
    */
-  initializeCameraToggle() {
-    // Import and create the CameraToggle component
-    import('./CameraToggle.js').then(module => {
+  async initializeCameraToggle(waitForInit = false) {
+    try {
+      // Import the CameraToggle module
+      const module = await import('./CameraToggle.js');
       const CameraToggle = module.default;
+      
+      // Create the CameraToggle instance
       this.cameraToggle = new CameraToggle(this.rtviClient, this.cameraControlsContainer);
-    }).catch(error => {
+      
+      this.log('Camera toggle initialized');
+      return this.cameraToggle;
+    } catch (error) {
       this.log(`Error loading CameraToggle: ${error.message}`);
-    });
+      throw error;
+    }
   }
 }
 
