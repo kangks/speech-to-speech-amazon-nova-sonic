@@ -108,12 +108,12 @@ async def create_room_and_token() -> tuple[str, str]:
     if not room_url:
         roomParams = DailyRoomParams(
             properties=DailyRoomProperties(
-                enable_recording="raw-tracks",
+                enable_recording="cloud",
                 recordings_bucket=RecordingsBucketConfig(
                     bucket_name=os.getenv("RECORDING_S3_BUCKETNAME", ""),
                     bucket_region=os.getenv("RECORDING_S3_REGION", ""),
                     assume_role_arn=os.getenv("RECORDING_ASSUME_ROLE_ARN", ""),
-                    allow_api_access=True,
+                    # allow_api_access=True,
                 ),
                 geo="ap-southeast-1" # https://docs.daily.co/reference/rest-api/rooms/config
             )
