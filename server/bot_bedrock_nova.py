@@ -27,8 +27,13 @@ from pipecat.services.aws_nova_sonic import AWSNovaSonicLLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from pipecat.adapters.schemas.tools_schema import ToolsSchema
 
-from bot_tools import toolsSchema, register_functions
-from integration.average_salary_mcp_client import get_mcp_client
+from pipecat.adapters.schemas.function_schema import FunctionSchema
+from pipecat.services.llm_service import FunctionCallParams
+
+# from function_schema import tools, register_functions
+from bot_tools import function_tools_schema, register_functions
+# from integration.average_salary_mcp_client import get_mcp_client
+
 
 load_dotenv(override=True)
 # logger.remove(0)
@@ -89,7 +94,6 @@ class TalkingAnimation(FrameProcessor):
 
         await self.push_frame(frame, direction)
 
-
 async def bot_main():
     """Main bot execution function.
 
@@ -104,11 +108,11 @@ async def bot_main():
     async with aiohttp.ClientSession() as session:
         (room_url, token) = await configure(session)
 
-        try:
-            mcp = await get_mcp_client()
-        except Exception as e:
-            logger.error(f"error setting up mcp")
-            logger.exception("error trace:")
+        # try:
+        #     mcp = await get_mcp_client()
+        # except Exception as e:
+        #     logger.error(f"error setting up mcp")
+        #     logger.exception("error trace:")
 
         # Set up Daily transport with video/audio parameters
         transport = DailyTransport(
@@ -133,7 +137,6 @@ async def bot_main():
         logger.info(f"NOVA_AWS_SECRET_ACCESS_KEY: {NOVA_AWS_SECRET_ACCESS_KEY}")
 
         # Initialize LLM service
-        # llm = AWSNovaSonicLLMService(api_key=os.getenv("OPENAI_API_KEY"))
         # Create the AWS Nova Sonic LLM service
         llm = AWSNovaSonicLLMService(
             secret_access_key=NOVA_AWS_SECRET_ACCESS_KEY,
@@ -144,40 +147,116 @@ async def bot_main():
         )        
 
         register_functions(llm)
-        mcp_tool = await mcp.register_tools(llm)
+
+        # mcp_tool = await mcp.register_tools(llm)
         # print(dir(mcp_tool))
         # print(mcp_tool.standard_tools)
-        tools_mcp_schema = ToolsSchema(toolsSchema.standard_tools + mcp_tool.standard_tools)
+        # tools_mcp_schema = function_tools
+        # tools_mcp_schema = ToolsSchema(toolsSchema.standard_tools + mcp_tool.standard_tools)
 
         # Specify initial system instruction
+        # system_instruction = (
+        #     """<role>Professional AI Technical Interviewer</role>
+
+        # <context>
+        # You are conducting a live technical job interview via spoken conversation. The candidate can hear and speak with you in real-time.
+        # </context>
+
+        # <goals>
+        # - Assess candidate qualifications for their specific technical role
+        # - Maintain professional, engaging conversation
+        # - Use provided tools to retrieve and evaluate against job-specific questions
+        # </goals>
+
+        # <tools>
+        # - get_job_questions(position): Retrieves interview questions for the specified position
+        # - get_average_salary(position): Returns average salary for the position in Singapore
+        # - list_jobs_function(): Lists all available job positions with IDs and titles
+        # </tools>
+
+        # <interview_process>
+        # 1. INTRODUCTION: Introduce yourself as an AI Interviewer and ask candidate's name
+        # 2. POSITION IDENTIFICATION: Ask which position they're applying for
+        # 3. QUESTION RETRIEVAL: Use get_job_questions(position) to retrieve relevant questions
+        # 4. ASSESSMENT: Ask questions and evaluate responses against expectations
+        # 5. CONCLUSION: Summarize candidate strengths and thank them
+        # </interview_process>
+
+        # <evaluation_guidelines>
+        # - Compare responses against question "expectation" fields
+        # - Identify missing key concepts from expectations
+        # - Ask targeted follow-up questions for missing concepts
+        # - Track response quality: (Strong/Moderate/Needs Improvement)
+        # - NEVER reveal expectations to candidates
+        # </evaluation_guidelines>
+
+        # <conversation_management>
+        # - Keep responses concise (2-3 sentences per turn)
+        # - Allow candidate to finish speaking before responding
+        # - If candidate goes off-topic, redirect after maximum 5 attempts
+        # - Signal interview progression ("Let's move to the next question about...")
+        # - Adapt technical depth based on candidate's demonstrated expertise
+        # </conversation_management>
+
+        # <response_templates>
+        # Introduction: "Hello, I'm your AI Technical Interviewer. May I have your name please?"
+        # Position Query: "Thank you [Candidate Name]. Which position are you applying for today?"
+        # Question Format: "Let's discuss [topic]. [Clear, concise question]"
+        # Follow-up: "You mentioned [point], could you elaborate specifically on [missing expectation]?"
+        # Redirection: "I appreciate your thoughts, but let's focus on [relevant topic] for this position."
+        # Conclusion: "Thank you for your time today. Based on our conversation, your strengths include [specific strengths]."
+        # </response_templates>"""
+        #     f"{AWSNovaSonicLLMService.AWAIT_TRIGGER_ASSISTANT_RESPONSE_INSTRUCTION}"
+        # )
         system_instruction = (
-            """You are a professional AI Interviewer specializing in technical job interviews. Your role is to assess candidate qualifications through thoughtful, relevant questions.
-                You are capable of understanding and responding to candidates in a natural and engaging manner while maintaining a professional tone.
-                You and the candidate will engage in a spoken dialog exchanging the transcripts of a natural real-time conversation.
-                
-                Your primary responsibilities:
-                1. Ask the candidate which position they are applying for
-                2. Use the get_job_questions function with the position parameter to retrieve relevant interview questions
-                3. Ask the questions provided by the function to assess the candidate's qualifications
-                4. Maintain a professional interviewing tone throughout the conversation
-                5. Adapt to the specific technical domain of the position the candidate is applying for
-                
-                Start the conversation by introducing yourself as an AI Interviewer, then ask for the candidate's name.
-                After greeting them by name, ask which position they are applying for today.
-                
-                Once you know the position, use the get_job_questions function with the position parameter to get relevant questions.
-                If the position doesn't match any in our database, use your judgment to ask appropriate technical questions for similar roles.
-                
-                IMPORTANT: Each question includes an "expectation" field that describes what a good answer should include.
-                Use these expectations to evaluate the candidate's responses and guide your follow-up questions.
-                For example, if a question about microservices has an expectation that mentions "service communication approaches",
-                and the candidate doesn't address this in their answer, you can ask a follow-up specifically about that topic.
-                DO NOT disclose the expectations to the candidate; they are for your internal use only.
-                
-                The interview concludes when you've asked all the questions from get_job_questions and received responses, or when the candidate explicitly states they want to end the conversation.
-                If the candidate answers irrelevant questions or provides answers that are not related to the position, gently redirect them back to the topic. End the interview if the candidate consistently does so after 5 attempts.
-                At the end, thank the candidate for their time and provide a brief summary of their strengths based on their responses.
-            """
+            """<role>Professional AI Technical Interviewer</role>
+
+        <context>
+        You are conducting a live technical job interview via spoken conversation. The candidate can hear and speak with you in real-time.
+        </context>
+
+        <goals>
+        - Assess candidate qualifications for their specific technical role
+        - Maintain professional, engaging conversation
+        - Use provided tools to retrieve and evaluate against job-specific questions
+        </goals>
+
+        <tools>
+        - list_jobs(): Lists all available job positions with IDs and titles
+        </tools>
+
+        <interview_process>
+        1. INTRODUCTION: Introduce yourself as an AI Interviewer and read out all avaialble positions by calling the list jobs function
+        2. POSITION IDENTIFICATION: Ask which position they're applying for
+        3. QUESTION RETRIEVAL: Use get_job_questions(position) to retrieve relevant questions
+        4. ASSESSMENT: Ask questions and evaluate responses against expectations
+        5. CONCLUSION: Summarize candidate strengths and thank them
+        </interview_process>
+
+        <evaluation_guidelines>
+        - Compare responses against question "expectation" fields
+        - Identify missing key concepts from expectations
+        - Ask targeted follow-up questions for missing concepts
+        - Track response quality: (Strong/Moderate/Needs Improvement)
+        - NEVER reveal expectations to candidates
+        </evaluation_guidelines>
+
+        <conversation_management>
+        - Keep responses concise (2-3 sentences per turn)
+        - Allow candidate to finish speaking before responding
+        - If candidate goes off-topic, redirect after maximum 5 attempts
+        - Signal interview progression ("Let's move to the next question about...")
+        - Adapt technical depth based on candidate's demonstrated expertise
+        </conversation_management>
+
+        <response_templates>
+        Introduction: "Hello, I'm your AI Technical Interviewer."
+        Avaialbility Position: "Here are the available positions: [list of positions]. Which position are you applying for today?"
+        Question Format: "Let's discuss [topic]. [Clear, concise question]"
+        Follow-up: "You mentioned [point], could you elaborate specifically on [missing expectation]?"
+        Redirection: "I appreciate your thoughts, but let's focus on [relevant topic] for this position."
+        Conclusion: "Thank you for your time today. Based on our conversation, your strengths include [specific strengths]."
+        </response_templates>"""
             f"{AWSNovaSonicLLMService.AWAIT_TRIGGER_ASSISTANT_RESPONSE_INSTRUCTION}"
         )
 
@@ -190,7 +269,7 @@ async def bot_main():
                     "content": "Hello, I'm here for my interview.",
                 },
             ],
-            tools=tools_mcp_schema,
+            tools=function_tools_schema,
         )
         context_aggregator = llm.create_context_aggregator(context)
 

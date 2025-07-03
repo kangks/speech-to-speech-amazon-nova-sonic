@@ -21,6 +21,7 @@ class Jobs:
 
         # Check if file exists
         if not DATA_FILE.exists():
+            logger.exception(f"Job questions file not found: {DATA_FILE}")
             return None
 
         # Read and parse job questions file
@@ -32,19 +33,22 @@ class Jobs:
             # If JSON is invalid, return an error response  
             return None
         
-        return job_data.get("jobs", [])
+        logger.info(f"Job data loaded successfully from {DATA_FILE}")
 
-    async def get_interview_questions(self, id:str) -> Dict:
+        positions = job_data.get("positions", [])
+
+        result = [{"id": position.get("id"), "title": position.get("title")} for position in positions]
+        logger.info(f"result {result}")
+
+        return result
+    
+    async def get_interview_questions(self, id:str) -> List:
         """Gets details of jobs from the data file server/integration/data/job_questions.json by the job id
 
         Args:
             id: job id
         returns:
-        {
-        "id": 100,
-        "title": "AI Consultant",
-        "description": "As an AI Consultant, you will develop and lead training programs on AI technologies, help organizations integrate AI solutions, and provide expertise on modern AI architectures including LLMs, RAG systems, and agent frameworks. You'll need strong technical knowledge combined with excellent communication skills to translate complex concepts for diverse audiences.",
-        "questions": [
+        [
             {
             "question": "Can you explain your experience implementing Large Language Models (LLMs) in enterprise environments?",
             "expectation": "Answer should include specific LLM implementations, challenges faced, solutions developed, and business outcomes achieved."
@@ -66,7 +70,6 @@ class Jobs:
             "expectation": "Answer should include specific information sources, learning methods, and examples of applying new knowledge in practice."
             }
         ]
-        }
         """
         DATA_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / "data"
         DATA_FILE = DATA_DIR / "job_questions.json"
@@ -87,7 +90,9 @@ class Jobs:
         positions = job_data.get("positions", [])
         for position in positions:
             if str(position.get("id")) == id:
-                return position
+                questions = position.get('questions', [])
+                logger.info(f"Found questions for job id {id}: {questions}")
+                return questions
         
         # Return None if no matching job is found
         return None

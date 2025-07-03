@@ -9,7 +9,7 @@
             "type": "node-terminal",
             "request": "launch",
             "command": "pnpm run dev --port 3000",
-            "cwd": "${workspaceFolder}/nova-sonic/webapp",
+            "cwd": "${workspaceFolder}/vite-client/",
             "skipFiles": ["<node_internals>/**"]
         },
         {
@@ -17,24 +17,26 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
-            "skipFiles": ["${workspaceFolder}/nova-sonic/webapp/node_modules/**/*.js"],
-            "webRoot": "${workspaceFolder}/nova-sonic/webapp",
+            "skipFiles": ["${workspaceFolder}/vite-client/node_modules/**/*.js"],
+            "webRoot": "${workspaceFolder}/vite-client",
         },        
         {
             "name": "Python Debugger: API",
             "type": "debugpy",
             "request": "launch",
-            "program": "app.py",
+            "program": "main.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/nova-sonic/api",
-            "python": "${workspaceFolder}/nova-sonic/api/.venv/bin/python",
+            "cwd": "${workspaceFolder}/server",
+            "python": "${workspaceFolder}/p13venv/bin/python",
             "purpose": [
                 "debug-test"
             ],            
             "justMyCode": false,
             "env": {
+                "VIRTUAL_ENV":"${workspaceFolder}/p13venv",
+                "PYTHONPATH": "${workspaceFolder}/p13venv/bin/python",
                 "AWS_PROFILE":""
             }
-        }        
+        }
     ]
 }

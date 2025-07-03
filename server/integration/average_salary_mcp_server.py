@@ -13,8 +13,8 @@ mcp = FastMCP("Salary with Curl Server")
 URL="https://www.morganmckinley.com/sg/salary-guide/data/data-scientist/singapore"
 
 # Define a tool
-@mcp.tool(description="Uses Curl to get average salary for Data Scientist in Singapore")
-def get_average_salary() -> int:
+@mcp.tool(description="Gets the average salary for the given role in Singapore")
+def get_average_salary(role:str) -> int:
     # Use command line curl to make a request to the URL
     try:
         # Run curl command with browser-like user agent and capture the output

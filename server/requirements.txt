@@ -1,7 +1,7 @@
 python-dotenv
 fastapi[all]
 uvicorn
-pipecat-ai[daily,elevenlabs,openai,silero,google]==0.0.71
+pipecat-ai[daily,elevenlabs,openai,silero,google]==0.0.73
 aws_sdk_bedrock_runtime
 runner
 loguru
