@@ -1,6 +1,7 @@
 {
   "positions": [
     {
+      "id": 100,
       "title": "AI Consultant",
       "description": "As an AI Consultant, you will develop and lead training programs on AI technologies, help organizations integrate AI solutions, and provide expertise on modern AI architectures including LLMs, RAG systems, and agent frameworks. You'll need strong technical knowledge combined with excellent communication skills to translate complex concepts for diverse audiences.",
       "questions": [
@@ -27,6 +28,7 @@
       ]
     },
     {
+      "id": 200,
       "title": "Data Science",
       "description": "As a Data Scientist, you will develop predictive models and algorithms to drive business decisions, collaborate with cross-functional teams to understand data requirements, and translate complex analytical findings into actionable insights. You'll work with large datasets using SQL, Python, and visualization tools to create interactive dashboards for stakeholders.",
       "questions": [
@@ -41,6 +43,7 @@
       ]
     },
     {
+      "id": 500,
       "title": "Java developer",
       "description": "As a Java Developer, you will design, implement, and maintain Java applications, collaborate with cross-functional teams to define software requirements, and ensure high-quality code through testing and code reviews. You'll work with frameworks like Spring Boot, manage database interactions, and implement RESTful APIs for enterprise applications.",
       "questions": [
@@ -67,6 +70,7 @@
       ]
     },
     {
+      "id": 710,
       "title": "Cloud Architect",
       "description": "As a Cloud Architect, you will design and implement scalable, secure, and resilient cloud infrastructure solutions, lead cloud migration strategies, optimize cloud costs, and ensure compliance with security best practices. You'll work with multiple cloud platforms (AWS, Azure, GCP), infrastructure-as-code tools, and containerization technologies to deliver enterprise-grade cloud environments.",
       "questions": [

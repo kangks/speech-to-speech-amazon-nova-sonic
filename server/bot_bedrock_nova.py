@@ -23,11 +23,12 @@ from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
 from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
-# from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.services.aws_nova_sonic import AWSNovaSonicLLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
+from pipecat.adapters.schemas.tools_schema import ToolsSchema
 
-from function_schema import tools, register_functions
+from bot_tools import toolsSchema, register_functions
+from integration.average_salary_mcp_client import get_mcp_client
 
 load_dotenv(override=True)
 # logger.remove(0)
@@ -89,7 +90,7 @@ class TalkingAnimation(FrameProcessor):
         await self.push_frame(frame, direction)
 
 
-async def main():
+async def bot_main():
     """Main bot execution function.
 
     Sets up and runs the bot pipeline including:
@@ -99,8 +100,15 @@ async def main():
     - Animation processing
     - RTVI event handling
     """
+    # Import here to avoid circular dependency
     async with aiohttp.ClientSession() as session:
         (room_url, token) = await configure(session)
+
+        try:
+            mcp = await get_mcp_client()
+        except Exception as e:
+            logger.error(f"error setting up mcp")
+            logger.exception("error trace:")
 
         # Set up Daily transport with video/audio parameters
         transport = DailyTransport(
@@ -134,6 +142,12 @@ async def main():
             voice_id=os.getenv("NOVA_VOICE_ID", "tiffany"),  # matthew, tiffany, amy
             send_transcription_frames=True
         )        
+
+        register_functions(llm)
+        mcp_tool = await mcp.register_tools(llm)
+        # print(dir(mcp_tool))
+        # print(mcp_tool.standard_tools)
+        tools_mcp_schema = ToolsSchema(toolsSchema.standard_tools + mcp_tool.standard_tools)
 
         # Specify initial system instruction
         system_instruction = (
@@ -176,11 +190,10 @@ async def main():
                     "content": "Hello, I'm here for my interview.",
                 },
             ],
-            # tools=tools,
+            tools=tools_mcp_schema,
         )
         context_aggregator = llm.create_context_aggregator(context)
 
-        # register_functions(llm)
         ta = TalkingAnimation()
 
         #
@@ -241,8 +254,6 @@ async def main():
         async def on_first_participant_joined(transport, participant):
             print(f"Participant joined: {participant}")
             await transport.start_recording()
-            # await transport.start_cloud_recording()
-            # await transport.start_custom_recording()
             await transport.capture_participant_transcription(participant["id"])
 
         @transport.event_handler("on_recording_started")
@@ -258,7 +269,6 @@ async def main():
                 # Add a method to the LLM service to close streams properly
                 # await llm.close_streams()
                 await transport.stop_recording()
-                # await transport.start_cloud_recording()
             except Exception as e:
                 logger.error(f"Error closing LLM streams: {e}")
 
@@ -270,4 +280,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(bot_main())

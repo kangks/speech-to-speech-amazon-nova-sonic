@@ -37,7 +37,7 @@ from pipecat.transports.services.helpers.daily_rest import DailyRESTHelper, Dail
 from datetime import datetime
 
 import asyncio
-from bot_bedrock_nova import main  
+from bot_bedrock_nova import bot_main  
 
 # Load environment variables from .env file
 load_dotenv(override=True)
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 
     # Start the FastAPI server
     uvicorn.run(
-        "server:app",
+        "main:app",
         host=config.host,
         port=config.port,
         reload=config.reload,
