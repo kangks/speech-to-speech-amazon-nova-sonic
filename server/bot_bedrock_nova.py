@@ -22,18 +22,10 @@ from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
-from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
 from pipecat.services.aws_nova_sonic import AWSNovaSonicLLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
-from pipecat.adapters.schemas.tools_schema import ToolsSchema
 
-from pipecat.adapters.schemas.function_schema import FunctionSchema
-from pipecat.services.llm_service import FunctionCallParams
-
-# from function_schema import tools, register_functions
 from bot_tools import function_tools_schema, register_functions
-# from integration.average_salary_mcp_client import get_mcp_client
-
 
 load_dotenv(override=True)
 # logger.remove(0)
