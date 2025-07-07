@@ -2,8 +2,6 @@
 
 A secure, enterprise-grade voice assistant solution powered by Amazon Nova Sonic, with WebRTC connectivity through Daily, and fully hosted on AWS infrastructure.
 
-![Voice AI Assistant Architecture](generated-diagrams/voice-ai-assistant-architecture.png)
-
 ## Table of Contents
 
 - [Voice AI Assistant](#voice-ai-assistant)
@@ -11,6 +9,7 @@ A secure, enterprise-grade voice assistant solution powered by Amazon Nova Sonic
   - [Overview](#overview)
     - [Key Features](#key-features)
   - [Architecture](#architecture)
+    - [Architecture Diagrams](#architecture-diagrams)
     - [Backend (Server)](#backend-server)
     - [Frontend (Client)](#frontend-client)
     - [AWS Infrastructure](#aws-infrastructure)
@@ -64,6 +63,23 @@ The Voice AI Assistant is a comprehensive speech-to-speech conversational AI sys
 
 The Voice AI Assistant is built on a modern, distributed architecture that enables real-time bidirectional voice communication between users and an AI assistant. The system consists of three main components:
 
+### Architecture Diagrams
+
+This project includes the following diagrams to help understand the system architecture:
+
+1. **High-Level AWS Architecture**: Shows the overall AWS services used in the solution including Fargate, CloudFront, S3, and Amazon Bedrock.
+   
+   ![AWS Architecture](generated-diagrams/high-level-aws-architecture.png.png)
+
+2. **Component Diagram**: Illustrates the relationships between client components, Daily.co rooms, and backend services.
+   
+   ![Component Diagram](generated-diagrams/voice-ai-assistant-components.png.png)
+
+3. **Data Flow Diagram**: Demonstrates how information flows through the system, from user input through WebRTC to backend processing and back to the user.
+   
+   ![Data Flow Diagram](generated-diagrams/voice-ai-assistant-dataflow.png.png)
+
+
 ### Backend (Server)
 
 The server implementation provides the foundation for the speech-to-speech system:
@@ -98,11 +114,15 @@ For detailed implementation, see the [Frontend Architecture](#frontend-architect
 The entire solution is deployed on AWS, leveraging various services:
 
 - **Compute**: AWS Fargate for containerized applications
+  - **Backend Service**: X86_64 architecture with 2048MB memory and 1024 vCPU
+  - **Frontend Service**: ARM64 architecture with 512MB memory and 256 vCPU
 - **Networking**: Application Load Balancers, VPC, security groups
 - **Storage**: S3 buckets for recording storage
 - **Security**: IAM roles, Parameter Store for secrets
 - **AI Processing**: Amazon Bedrock with Nova Sonic model
-- **API Gateway**: S3 proxy for secure access to recordings
+- **S3 Direct Access**: Secure access to recordings stored in S3 buckets
+
+The architecture choice of X86_64 for the backend ensures compatibility with specialized audio processing libraries, while the ARM64 architecture for the frontend optimizes for cost-efficiency. This hybrid approach balances performance requirements with operational costs.
 
 For deployment instructions, see the [Deployment](#deployment) section.
 
@@ -144,18 +164,20 @@ The Voice AI Assistant is designed with enterprise security requirements in mind
 
 Voice recordings are a critical component of the system, with comprehensive management features:
 
-- **Storage**: All recordings stored in designated S3 buckets
-- **Access**: Secure access through API Gateway with proper authentication
-- **Organization**: Recordings organized by session, date, and user
+- **Storage**: All recordings stored in designated S3 buckets using Daily's cloud recording service
+- **Access**: Direct access to S3 with appropriate IAM permissions and policies
+- **Organization**: Recordings organized by session, date, and user with hierarchical folder structure
 - **Retention**: Configurable retention policies to meet compliance requirements
-- **Playback**: Web interface for browsing and playing recordings
+- **Playback**: Web interface for browsing and playing recordings with streaming capabilities
 - **Download**: Secure download capabilities for authorized users
 
 The recordings functionality allows users to:
-- List recordings stored in the S3 bucket
-- Browse folders when clicked
-- Play audio and video files when clicked
-- Download other file types
+- Access recordings stored in the S3 bucket using AWS SDK or pre-signed URLs
+- Browse and manage recordings with appropriate authentication and authorization
+- Stream audio and video files directly from S3
+- Download files with proper content-type headers for different file types
+
+This implementation maintains security through IAM policies and role-based access control while allowing direct access to recordings stored in S3 buckets.
 
 ## Backend Architecture
 
@@ -280,18 +302,22 @@ The backend includes a comprehensive recording management system:
 ```python
 roomParams = DailyRoomParams(
     properties=DailyRoomProperties(
-        enable_recording="raw-tracks",
+        enable_recording="cloud",  # Daily's cloud recording service
         recordings_bucket=RecordingsBucketConfig(
             bucket_name=os.getenv("RECORDING_S3_BUCKETNAME", ""),
             bucket_region=os.getenv("RECORDING_S3_REGION", ""),
             assume_role_arn=os.getenv("RECORDING_ASSUME_ROLE_ARN", ""),
-            allow_api_access=True,
         ),
         geo="ap-southeast-1"
     )
 )
 ```
 
+- **Bot Process Management**:
+  - Bot processes run as separate Python processes for isolation
+  - Process IDs are tracked for monitoring and management
+  - Status endpoint (`/status/{pid}`) allows checking if a bot process is still running
+  - Clean termination of bot processes on server shutdown
 - **Recording Control**: Start/stop recording functionality tied to participant events
 - **Transcript Storage**: Optional DynamoDB integration for transcript storage
 - **Conversation Tracking**: Timestamps and user identification for all conversations
@@ -416,6 +442,37 @@ Handles all video-related functionality:
     if (tracks.bot?.video) {
       this.setupBotVideoTrack(tracks.bot.video);
     }
+  }
+  ```
+- **Error Handling**: Comprehensive error handling for various failure scenarios
+  ```javascript
+  // Handle track failures
+  this.rtviClient.on(RTVIEvent.TrackError, (error, track) => {
+    this.log(`Track error for ${track?.kind || 'unknown'}: ${error.message}`);
+    // Implement recovery strategies based on error type
+    if (error.name === 'NotAllowedError') {
+      // Handle permission errors
+      this.displayPermissionError();
+    } else if (error.name === 'NotFoundError') {
+      // Handle device not found errors
+      this.handleDeviceNotFound(track?.kind);
+    }
+  });
+  ```
+- **Audio Optimization**: Low-latency audio configuration for responsive conversations
+  ```javascript
+  // Audio optimization for low latency
+  setupBotAudioTrack(track, audioElement) {
+    audioElement.setSinkId('default'); // For hardware acceleration if supported
+    audioElement.preload = "auto";     // Preload audio data
+    audioElement.defaultPlaybackRate = 1.0;
+    
+    // Additional optimizations for reduced latency
+    audioElement.autoplay = true;      // Start playing immediately when data is available
+    audioElement.buffer = 0;           // Minimal buffering to reduce delay
+    
+    // Attach track to audio element
+    track.attach(audioElement);
   }
   ```
 
@@ -615,7 +672,6 @@ This section provides detailed instructions for deploying all components of the 
    Edit the `.env` file with your specific configuration:
    ```
    VITE_BASE_URL=http://localhost:8000
-   VITE_S3_PROXY_API_ENDPOINT=<your-api-gateway-endpoint>
    ```
 
 ### AWS Infrastructure Deployment
@@ -649,7 +705,6 @@ This section provides detailed instructions for deploying all components of the 
    - VPC and networking components
    - ECS Fargate cluster for containerized applications
    - S3 buckets for frontend assets and recordings
-   - API Gateway for S3 proxy
    - IAM roles and policies
    - CloudFront distribution for frontend
 
@@ -658,7 +713,6 @@ This section provides detailed instructions for deploying all components of the 
    After deployment completes, note the following outputs from the CDK deployment:
    - `FrontendURL`: URL for accessing the frontend application
    - `BackendURL`: URL for accessing the backend API
-   - `S3ProxyApiEndpoint`: API Gateway endpoint for accessing recordings
 
 ### Backend Deployment
 
@@ -730,34 +784,55 @@ This section provides detailed instructions for deploying all components of the 
 
 ### Setting up S3 Buckets for Daily Recordings
 
-1. **Create S3 Bucket for Daily Recordings**
+1. **Daily Recordings Bucket CDK Stack (Recommended)**
+
+   Daily provides an official AWS CDK stack to simplify the setup process for recordings. You can use the repository at [daily-co/daily-recordings-bucket](https://github.com/daily-co/daily-recordings-bucket) to streamline the creation of all necessary AWS resources.
+
+   a. **Clone the Repository**
+   ```bash
+   git clone https://github.com/daily-co/daily-recordings-bucket.git
+   cd daily-recordings-bucket
+   ```
+
+   b. **Install Dependencies and Deploy**
+   ```bash
+   npm install
+   npx cdk bootstrap  # If you haven't bootstrapped CDK before
+   npx cdk deploy
+   ```
+
+   c. **Note the Outputs**
+   
+   After deployment, the CDK stack will output the bucket name and IAM role ARN to use in your application. These values will be used for `RECORDING_S3_BUCKETNAME` and `RECORDING_ASSUME_ROLE_ARN` in your environment configuration.
+
+   The CDK stack automatically:
+   - Creates an S3 bucket with proper versioning and configurations
+   - Sets up the correct IAM policies and cross-account trust relationships
+   - Configures all required permissions for Daily's recording service
+
+   **Note**: If you're integrating this with the Voice AI Assistant, you can incorporate this CDK stack into your existing CDK deployment or deploy it separately.
+
+2. **Manual Setup (Alternative)**
+
+   If you prefer to set up the resources manually or need custom configurations, follow these steps:
+
+   a. **Create S3 Bucket for Daily Recordings**
    
    This step is handled by the CDK deployment, but if you need to create it manually:
    ```bash
    aws s3 mb s3://<your-recording-bucket-name> --region <your-region>
    ```
+   
+   **Important**: Ensure that versioning is enabled for your S3 bucket. This is required by Daily for reliable recording storage.
 
-2. **Configure Daily Recordings Bucket**
-   
-   Follow the instructions from [Daily Recordings Bucket Setup](https://github.com/daily-co/daily-recordings-bucket):
-   
-   a. Clone the Daily Recordings Bucket repository:
-   ```bash
-   git clone https://github.com/daily-co/daily-recordings-bucket.git
-   cd daily-recordings-bucket
-   ```
-   
-   b. Configure the bucket with your Daily account:
-   ```bash
-   npm install
-   npm run configure -- --bucket <your-recording-bucket-name> --region <your-region>
-   ```
-   
-   c. Update your Daily account settings to use this bucket for recordings.
+   b. **Set up Cross-Account Trust for Daily**
 
-3. **Configure IAM Permissions**
+   Daily requires cross-account access to write recordings to your S3 bucket. Follow these steps to configure the trust relationship:
+
+   i. **Create an IAM Policy for Daily Access**
    
-   Ensure the IAM role used by the backend has permissions to access the recordings bucket:
+   Create a policy with the necessary permissions:
+   
    ```json
    {
      "Version": "2012-10-17",
@@ -765,8 +840,10 @@ This section provides detailed instructions for deploying all components of the 
        {
          "Effect": "Allow",
          "Action": [
+           "s3:PutObject",
            "s3:GetObject",
-           "s3:ListBucket"
+           "s3:ListBucket",
+           "s3:DeleteObject"
          ],
          "Resource": [
            "arn:aws:s3:::<your-recording-bucket-name>",
@@ -775,6 +852,66 @@ This section provides detailed instructions for deploying all components of the 
        }
      ]
    }
+   ```
+
+   ii. **Create a Cross-Account IAM Role**
+   
+   Create an IAM role with the following trust relationship to allow Daily's AWS account to assume the role:
+   
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "AWS": "arn:aws:iam::291871421085:root"
+         },
+         "Action": "sts:AssumeRole",
+         "Condition": {
+           "StringEquals": {
+             "sts:ExternalId": "<your-daily-api-key>"
+           }
+         }
+       }
+     ]
+   }
+   ```
+   
+   **Note**: The `ExternalId` condition is critical for security. Use your Daily API key as the external ID to prevent confused deputy attacks.
+   
+   iii. **Attach the IAM Policy to the Role**
+   
+   Attach the policy created in step 2.b.i to the IAM role created in step 2.b.ii.
+
+3. **Configure Application Environment Variables**
+   
+   Update your `.env` file with the following variables:
+   
+   ```
+   RECORDING_S3_BUCKETNAME=<your-recording-bucket-name>
+   RECORDING_S3_REGION=<your-bucket-region>
+   RECORDING_ASSUME_ROLE_ARN=<your-iam-role-arn>
+   ```
+   
+   The `RECORDING_ASSUME_ROLE_ARN` should be the ARN of the role you created in step 2.b.ii or obtained from the CDK stack outputs.
+
+4. **Configure Daily Room Parameters**
+
+   The server application configures Daily rooms with the appropriate recording parameters:
+   
+   ```python
+   roomParams = DailyRoomParams(
+       properties=DailyRoomProperties(
+           enable_recording="cloud",  # Use "cloud" for managed recordings
+           recordings_bucket=RecordingsBucketConfig(
+               bucket_name=os.getenv("RECORDING_S3_BUCKETNAME", ""),
+               bucket_region=os.getenv("RECORDING_S3_REGION", ""),
+               assume_role_arn=os.getenv("RECORDING_ASSUME_ROLE_ARN", ""),
+           ),
+           geo="ap-southeast-1"  # Set appropriate region
+       )
+   )
    ```
 
 ### Configuration for Amazon Nova Sonic
