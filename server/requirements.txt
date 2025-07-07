@@ -1,8 +1,9 @@
 python-dotenv
 fastapi[all]
 uvicorn
--e ../pipecat[daily,elevenlabs,openai,silero,google]
+pipecat-ai[daily,silero,aws-nova-sonic]==0.0.74
 aws_sdk_bedrock_runtime
+requests
 runner
 loguru
 strands-agents 
