@@ -33,4 +33,4 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 
 # Run the application
-CMD ["python", "server.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "main.py", "--host", "0.0.0.0", "--port", "8000"]

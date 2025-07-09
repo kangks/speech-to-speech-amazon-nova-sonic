@@ -198,7 +198,7 @@ export class CdkStack extends cdk.Stack {
       cluster,
       memoryLimitMiB: 512,
       cpu: 256,
-      desiredCount: 2,
+      desiredCount: 1,
       
       taskImageOptions: {
         image: ecs.ContainerImage.fromDockerImageAsset(webappImage),
