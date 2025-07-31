@@ -1,12 +1,13 @@
 import asyncio
 import os
 import sys
-
 import aiohttp
 from dotenv import load_dotenv
 from loguru import logger
 from PIL import Image
 from runner import configure
+from transcript_handler import TranscriptHandler
+import uuid
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import (
@@ -24,6 +25,9 @@ from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
 from pipecat.services.aws_nova_sonic import AWSNovaSonicLLMService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
+from pipecat.processors.transcript_processor import TranscriptProcessor
+from pipecat.frames.frames import Frame, TranscriptionFrame
+from pipecat.frames.frames import TranscriptionMessage
 
 from bot_tools import function_tools_schema, register_functions
 
@@ -98,6 +102,8 @@ async def bot_main():
     """
     # Import here to avoid circular dependency
     async with aiohttp.ClientSession() as session:
+        session_id = str(uuid.uuid4()) # Generate a unique ID
+        session.unique_id = session_id # Assign the ID to a custom attribute
         (room_url, token) = await configure(session)
 
         # try:
@@ -122,6 +128,9 @@ async def bot_main():
                 transcription_enabled=True,
             ),
         )
+
+        # Initialize the TranscriptHandler with the transport
+        transcript_handler = TranscriptHandler(transport=transport, username=os.getenv("USER_NAME", "interview_candidate"), session_id=session_id)
 
         NOVA_AWS_SECRET_ACCESS_KEY=os.getenv("NOVA_AWS_SECRET_ACCESS_KEY")
         NOVA_AWS_ACCESS_KEY_ID=os.getenv("NOVA_AWS_ACCESS_KEY_ID")
@@ -208,6 +217,7 @@ async def bot_main():
         context_aggregator = llm.create_context_aggregator(context)
 
         ta = TalkingAnimation()
+        transcript = TranscriptProcessor()
 
         #
         # RTVI events for Pipecat client UI
@@ -220,8 +230,10 @@ async def bot_main():
                 rtvi,
                 context_aggregator.user(),
                 llm,
+                transcript.user(),
                 ta,
                 transport.output(),
+                transcript.assistant(),         # Captures assistant transcripts
                 context_aggregator.assistant(),
             ]
         )
@@ -263,24 +275,40 @@ async def bot_main():
             # Send test transcript messages to verify transcript functionality
             logger.info("Sending test transcript messages")
 
+        @transcript.event_handler("on_transcript_update")
+        async def on_transcript_update(processor, frame):
+            # Call the TranscriptHandler's on_transcript_update method to store in DynamoDB
+            await transcript_handler.on_transcript_update(processor, frame)
+            
+            # Still log the transcript lines for debugging purposes
+            for msg in frame.messages:
+                if isinstance(msg, TranscriptionMessage):
+                    timestamp = f"[{msg.timestamp}] " if msg.timestamp else ""
+                    line = f"{timestamp}{msg.role}: {msg.content}"
+                    logger.info(f"Transcript: {line}")
+            
         @transport.event_handler("on_first_participant_joined")
         async def on_first_participant_joined(transport, participant):
             print(f"Participant joined: {participant}")
             await transport.start_recording()
-            await transport.capture_participant_transcription(participant["id"])
+        #     await transport.capture_participant_transcription(participant["id"])
 
-        @transport.event_handler("on_recording_started")
-        async def on_recording_started(any1, any2):
-            print(f"any1: {any1}")
-            print(f"any2: {any2}")
+        # @transport.event_handler("on_recording_started")
+        # async def on_recording_started(any1, any2):
+        #     print(f"any1: {any1}")
+        #     print(f"any2: {any2}")
 
         @transport.event_handler("on_participant_left")
         async def on_participant_left(transport, participant, reason):
             print(f"Participant left: {participant}")
+            
+            # Store the full transcript in DynamoDB via TranscriptHandler
+            await transcript_handler.on_participant_left(transport, participant, reason)
+            
             # First, gracefully stop the LLM service
             try:
                 # Add a method to the LLM service to close streams properly
-                # await llm.close_streams()
+                await llm.close_streams()
                 await transport.stop_recording()
             except Exception as e:
                 logger.error(f"Error closing LLM streams: {e}")
