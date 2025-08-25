@@ -870,7 +870,7 @@ This section provides detailed instructions for deploying all components of the 
          "Action": "sts:AssumeRole",
          "Condition": {
            "StringEquals": {
-             "sts:ExternalId": "<your-daily-api-key>"
+             "sts:ExternalId": "<your-daily-domain. For example, 'doitintl' if you registered as doitintl.daily.co>"
            }
          }
        }
