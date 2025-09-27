@@ -23,7 +23,10 @@ fi
 
 cat $sed_script
 
-# sed All files
-find /usr/share/nginx/html -type f -print -exec sed -i -f "$sed_script" '{}'  +
+# sed All files in the web root
+find /usr/share/nginx/html -type f -print -exec sed -i -f "$sed_script" '{}'  \;
+
+# Also process nginx configuration files
+find /etc/nginx/conf.d -type f -name "*.conf" -print -exec sed -i -f "$sed_script" '{}'  \;
 
 # sed JS and CSS only
